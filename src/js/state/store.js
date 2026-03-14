@@ -48,3 +48,81 @@ export function mergeEntries(localEntries, cloudEntries) {
 
   return sortEntriesNewestFirst(Array.from(mergedMap.values()));
 }
+
+const listeners = new Set();
+
+const state = {
+  entries: [],
+  syncMeta: { lastSyncedAt: "", lastSyncStatus: "never", lastSyncMessage: "" },
+  syncSettings: { workerBaseUrl: "", syncKey: "", syncSecret: "" },
+  filters: { recent: "7", customStartDate: "", customEndDate: "" },
+  ui: {
+    formMessage: { text: "", mode: "" },
+    dataMessage: "",
+    syncSettingsMessage: "",
+    sync: { phase: "idle", message: "", isPending: false }
+  }
+};
+
+function notify(changedAreas = ["all"]) {
+  listeners.forEach(listener => listener(state, changedAreas));
+}
+
+export function getState() {
+  return state;
+}
+
+export function subscribe(listener) {
+  listeners.add(listener);
+  listener(state, ["all"]);
+  return () => listeners.delete(listener);
+}
+
+export const actions = {
+  hydrate({ entries, syncMeta, syncSettings }) {
+    state.entries = sortEntriesNewestFirst(entries.map(normaliseEntry));
+    state.syncMeta = { ...state.syncMeta, ...syncMeta };
+    state.syncSettings = { ...state.syncSettings, ...syncSettings };
+    notify(["entries", "review", "syncStatus"]);
+  },
+
+  setEntries(entries) {
+    state.entries = sortEntriesNewestFirst(entries.map(normaliseEntry));
+    notify(["entries", "review"]);
+  },
+
+  setFilters(filters) {
+    state.filters = { ...state.filters, ...filters };
+    notify(["entries"]);
+  },
+
+  setFormMessage(text, mode = "") {
+    state.ui.formMessage = { text, mode };
+    notify(["formState"]);
+  },
+
+  setDataMessage(message) {
+    state.ui.dataMessage = message;
+    notify(["formState"]);
+  },
+
+  setSyncSettingsMessage(message) {
+    state.ui.syncSettingsMessage = message;
+    notify(["syncStatus"]);
+  },
+
+  setSyncSettings(syncSettings) {
+    state.syncSettings = { ...state.syncSettings, ...syncSettings };
+    notify(["syncStatus"]);
+  },
+
+  setSyncMeta(syncMeta) {
+    state.syncMeta = { ...state.syncMeta, ...syncMeta };
+    notify(["syncStatus"]);
+  },
+
+  setSyncState(syncState) {
+    state.ui.sync = { ...state.ui.sync, ...syncState };
+    notify(["syncStatus"]);
+  }
+};

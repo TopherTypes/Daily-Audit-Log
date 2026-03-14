@@ -6,7 +6,7 @@ export function escapeHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
 
@@ -43,7 +43,7 @@ export function entryToCardHtml(entry) {
   return `<article class="entry-card"><div class="entry-top"><div><div class="entry-date">${escapeHtml(formatDisplayDate(entry.entryDate))}</div><div class="small">Updated ${escapeHtml(formatDisplayTimestamp(entry.lastModified || entry.createdAt))}</div></div><span class="pill">Energy ${escapeHtml(entry.energy)}</span></div><div class="entry-fields">${visibleFields || '<div class="small">This entry is mostly empty, which is still a valid life form.</div>'}</div></article>`;
 }
 
-export function renderEntries(entriesListEl, entries) {
+function renderEntriesList(entriesListEl, entries) {
   if (entries.length === 0) {
     entriesListEl.innerHTML = '<div class="empty-state">No entries yet. Your future self is currently unbriefed.</div>';
     return;
@@ -51,7 +51,7 @@ export function renderEntries(entriesListEl, entries) {
   entriesListEl.innerHTML = entries.map(entryToCardHtml).join("");
 }
 
-export function renderReviewList(reviewResultEl, entries) {
+function renderReviewList(reviewResultEl, entries) {
   if (entries.length === 0) {
     reviewResultEl.innerHTML = '<div class="empty-state">No entries yet to review.</div>';
     return;
@@ -67,4 +67,50 @@ export function renderReflectionResult(reviewResultEl, kind, targetDateString, b
 
   const targetLabel = kind === "week" ? "This time last week" : kind === "month" ? "This time last month" : "This time last year";
   reviewResultEl.innerHTML = `<div class="small">${escapeHtml(targetLabel)} — target date ${escapeHtml(formatDisplayDate(targetDateString))}</div>${entryToCardHtml(bestEntry)}`;
+}
+
+export function renderFormState(elements, state) {
+  elements.formMessage.textContent = state.ui.formMessage.text;
+  elements.formMessage.classList.remove("success", "error");
+  if (state.ui.formMessage.mode) elements.formMessage.classList.add(state.ui.formMessage.mode);
+
+  if (elements.stickySaveFeedback) {
+    elements.stickySaveFeedback.textContent = state.ui.formMessage.text || "Entries save locally first, then sync if configured.";
+  }
+
+  if (elements.dataMessage) elements.dataMessage.textContent = state.ui.dataMessage;
+}
+
+export function renderEntries(elements, entries) {
+  renderEntriesList(elements.entriesList, entries);
+}
+
+export function renderReview(elements, entries) {
+  renderReviewList(elements.reviewResult, entries.slice(0, 5));
+}
+
+export function renderSyncStatus(elements, state) {
+  const meta = state.syncMeta;
+  const syncUi = state.ui.sync;
+
+  elements.syncStatusBox.classList.remove("success", "error");
+  if (meta.lastSyncStatus === "success") {
+    elements.syncStatusBox.classList.add("success");
+    elements.syncStatusBox.textContent = meta.lastSyncedAt ? `Last synced: ${formatDisplayTimestamp(meta.lastSyncedAt)}` : "Last sync succeeded.";
+  } else if (meta.lastSyncStatus === "error") {
+    elements.syncStatusBox.classList.add("error");
+    elements.syncStatusBox.textContent = meta.lastSyncMessage ? `Sync failed: ${meta.lastSyncMessage}` : "Last sync failed.";
+  } else {
+    elements.syncStatusBox.textContent = "Cloud sync not configured yet.";
+  }
+
+  elements.syncSettingsMessage.textContent = state.ui.syncSettingsMessage;
+
+  elements.syncOverlayMessage.textContent = syncUi.message || "Please wait while your entries are merged and synced.";
+  elements.syncOverlay.classList.toggle("hidden", !syncUi.isPending);
+  document.body.style.overflow = syncUi.isPending ? "hidden" : "";
+
+  // Keep sync controls responsive by scoping loading states to sync-affecting actions only.
+  elements.pullFromCloudBtn.disabled = syncUi.isPending;
+  elements.saveSyncSettingsBtn.disabled = syncUi.phase === "pulling" || syncUi.phase === "pushing";
 }
