@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily Audit</title>
+  <script>
+    (function () {
+      const key = "dailyAuditThemePreferenceV1";
+      const stored = window.localStorage.getItem(key);
+      if (stored === "light" || stored === "dark") {
+        document.documentElement.setAttribute("data-theme", stored);
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="./styles/tokens.css" />
   <link rel="stylesheet" href="./styles/layout.css" />
   <link rel="stylesheet" href="./styles/components.css" />
@@ -20,7 +29,10 @@
 
   <main class="container">
     <header class="header">
-      <h1>Daily Audit</h1>
+      <div class="header-top">
+        <h1>Daily Audit</h1>
+        <button type="button" id="themeToggleBtn" class="theme-toggle" aria-label="Toggle theme">Theme: System</button>
+      </div>
       <p class="subtitle">
         A small end-of-day check-in. Notice what mattered, what pulled you off course,
         what supported you, and what wants to come forward into tomorrow.

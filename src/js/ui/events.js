@@ -4,6 +4,7 @@ import { readEntries, saveEntries, readSyncSettings, saveSyncSettings, readSyncM
 import { fetchCloudEntries, hasSyncConfigured, pushEntriesToCloud } from "../services/sync.js";
 import { mergeEntries, normaliseEntry, sortEntriesNewestFirst } from "../state/store.js";
 import { QUESTION_SCHEMA } from "../config/questions.js";
+import { THEME_PREFERENCE_KEY } from "../config.js";
 import { renderEntries, renderReviewList, renderReflectionResult } from "./render.js";
 
 function getSelectedEnergy() {
@@ -57,11 +58,57 @@ export function createUiHandlers(elements) {
     }, 30);
   }
 
+  function pulseStatus(el) {
+    if (!el) return;
+    el.classList.remove("status-pop");
+    void el.offsetWidth;
+    el.classList.add("status-pop");
+  }
+
+  function applyThemePreference(theme) {
+    if (theme === "light" || theme === "dark") {
+      document.documentElement.setAttribute("data-theme", theme);
+      window.localStorage.setItem(THEME_PREFERENCE_KEY, theme);
+      if (elements.themeToggleBtn) {
+        elements.themeToggleBtn.dataset.theme = theme;
+        elements.themeToggleBtn.textContent = `Theme: ${theme === "dark" ? "Dark" : "Light"}`;
+      }
+      return;
+    }
+
+    document.documentElement.removeAttribute("data-theme");
+    window.localStorage.removeItem(THEME_PREFERENCE_KEY);
+    if (elements.themeToggleBtn) {
+      elements.themeToggleBtn.dataset.theme = "system";
+      elements.themeToggleBtn.textContent = "Theme: System";
+    }
+  }
+
+  function setupThemeToggle() {
+    if (!elements.themeToggleBtn) return;
+
+    const stored = window.localStorage.getItem(THEME_PREFERENCE_KEY);
+    applyThemePreference(stored === "light" || stored === "dark" ? stored : "system");
+
+    // Cycle keeps manual overrides explicit while still supporting system mode.
+    const order = ["system", "light", "dark"];
+    elements.themeToggleBtn.addEventListener("click", () => {
+      const current = elements.themeToggleBtn.dataset.theme || "system";
+      const next = order[(order.indexOf(current) + 1) % order.length];
+      applyThemePreference(next);
+      announceLive("save", `Theme changed to ${next}.`);
+    });
+  }
+
   function setFormFeedback(message, mode = "") {
     elements.formMessage.textContent = message;
     elements.formMessage.classList.remove("success", "error");
     if (mode) elements.formMessage.classList.add(mode);
-    if (elements.stickySaveFeedback) elements.stickySaveFeedback.textContent = message || "Entries save locally first, then sync if configured.";
+    if (elements.stickySaveFeedback) {
+      elements.stickySaveFeedback.textContent = message || "Entries save locally first, then sync if configured.";
+      if (mode === "success") pulseStatus(elements.stickySaveFeedback);
+    }
+    if (mode === "success") pulseStatus(elements.formMessage);
     announceLive("save", message);
   }
 
@@ -227,6 +274,8 @@ export function createUiHandlers(elements) {
   }
 
   function bind() {
+    setupThemeToggle();
+
     elements.tabButtons.forEach(button => {
       button.addEventListener("click", () => setActiveTab(button.dataset.tab));
     });
