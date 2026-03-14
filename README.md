@@ -19,3 +19,10 @@ The app now uses a small frontend module structure under `src/`:
 ### Data flow
 
 `init()` collects DOM references, creates UI handlers, attaches speech callbacks, binds events, and performs initial rendering. Event handlers read/write local data through `storage.js`, transform/merge through `store.js`, call sync APIs through `sync.js`, and then re-render through `render.js`.
+
+### UX layout
+
+- `Journal` is now the default focused view with the daily entry form.
+- `Review` contains reflection shortcuts and filtered recent entries (7 days, 30 days, or custom range).
+- `Settings & Sync` and `Data` are split into dedicated tabs and collapse into accordions on mobile.
+- A sticky mobile-first save bar keeps `Save entry` available while scrolling.
