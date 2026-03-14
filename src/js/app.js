@@ -44,7 +44,8 @@ function collectElements() {
     syncStatusBox: document.getElementById("syncStatusBox"),
     syncOverlay: document.getElementById("syncOverlay"),
     syncOverlayMessage: document.getElementById("syncOverlayMessage"),
-    micButtons: Array.from(document.querySelectorAll(".mic-btn"))
+    micButtons: Array.from(document.querySelectorAll(".mic-btn")),
+    themeToggleBtn: document.getElementById("themeToggleBtn")
   };
 }
 

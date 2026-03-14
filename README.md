@@ -26,3 +26,9 @@ The app now uses a small frontend module structure under `src/`:
 - `Review` contains reflection shortcuts and filtered recent entries (7 days, 30 days, or custom range).
 - `Settings & Sync` and `Data` are split into dedicated tabs and collapse into accordions on mobile.
 - A sticky mobile-first save bar keeps `Save entry` available while scrolling.
+
+## Styling and theming
+
+- `src/styles/tokens.css` now defines the design token system (color, spacing, typography, radius, elevation, motion).
+- The app respects `prefers-color-scheme` by default and includes a manual Light/Dark/System theme toggle persisted in localStorage.
+- Component and layout styles use shared tokenized states for focus, hover, active, disabled, and subtle reduced-motion-aware transitions.
