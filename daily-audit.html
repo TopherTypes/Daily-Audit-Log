@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Audit</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --panel-alt: #f0f3f8;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d7dde7;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #b91c1c;
+      --danger-hover: #991b1b;
+      --success: #166534;
+      --success-bg: #dcfce7;
+      --warning-bg: #fef3c7;
+      --warning-text: #92400e;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --max-width: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+    }
+
+    body {
+      padding: 24px;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 650;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 650;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      max-width: 72ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input[type="date"],
+    input[type="text"],
+    input[type="password"],
+    textarea,
+    input[type="file"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[readonly] {
+      background: #f8fafc;
+      color: var(--muted);
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .textarea-with-mic {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .mic-btn {
+      min-width: 52px;
+      min-height: 48px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 1.1rem;
+      transition: 0.18s ease;
+    }
+
+    .mic-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .mic-btn.armed {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    .mic-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .field-help {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .speech-status,
+    .sync-status-box {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .speech-status.active {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-color: #f3d27a;
+    }
+
+    .speech-status.success,
+    .sync-status-box.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #86efac;
+    }
+
+    .sync-status-box.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fca5a5;
+    }
+
+    .energy-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .energy-option {
+      position: relative;
+    }
+
+    .energy-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .energy-option label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      cursor: pointer;
+      transition: 0.18s ease;
+      font-weight: 600;
+    }
+
+    .energy-option input:checked + label {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .energy-option label:hover {
+      border-color: var(--accent);
+    }
+
+    .actions,
+    .toolbar,
+    .reflection-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+
+    button.danger:hover:not(:disabled) {
+      background: var(--danger-hover);
+      border-color: var(--danger-hover);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .entry-list {
+      display: grid;
+      gap: 14px;
+      max-height: 900px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .entry-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel-alt);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .entry-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .entry-date {
+      font-weight: 700;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      background: #fff;
+      color: var(--muted);
+    }
+
+    .entry-fields {
+      display: grid;
+      gap: 8px;
+    }
+
+    .entry-field strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .entry-field p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .review-result {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .empty-state {
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .small {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .top-tools {
+      display: grid;
+      gap: 16px;
+    }
+
+    .sync-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    .sync-overlay.hidden {
+      display: none;
+    }
+
+    .sync-modal {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: min(440px, calc(100vw - 32px));
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      margin: 0 auto 16px;
+      border: 4px solid #d7dde7;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .textarea-with-mic {
+        grid-template-columns: 1fr;
+      }
+
+      .mic-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="syncOverlay" class="sync-overlay hidden" aria-hidden="true">
+    <div class="sync-modal">
+      <div class="spinner"></div>
+      <h3>Syncing data…</h3>
+      <p id="syncOverlayMessage">Please wait while your entries are merged and synced.</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <header class="header">
+      <h1>Daily Audit</h1>
+      <p class="subtitle">
+        A small end-of-day check-in. Notice what mattered, what pulled you off course,
+        what supported you, and what wants to come forward into tomorrow.
+      </p>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2>Today’s entry</h2>
+            <p class="muted">Short answers are enough. Imperfect entries still count.</p>
+          </div>
+        </div>
+
+        <div id="speechStatus" class="speech-status">
+          Voice input is ready if your browser supports it.
+        </div>
+
+        <form id="auditForm" class="stack" style="margin-top: 16px;">
+          <div class="field">
+            <label for="entryDate">Date</label>
+            <input type="date" id="entryDate" required />
+          </div>
+
+          <div class="field">
+            <label for="feeling">How do I feel?</label>
+            <div class="textarea-with-mic">
+              <textarea id="feeling" maxlength="2000" placeholder="A quick read on your internal weather..."></textarea>
+              <button type="button" class="mic-btn" data-target="feeling" aria-label="Use voice input for How do I feel?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Energy (1–5)</label>
+            <div class="energy-group" role="radiogroup" aria-label="Energy rating">
+              <div class="energy-option">
+                <input type="radio" name="energy" id="energy1" value="1" required />
+                <label for="energy1">1</label>
+              </div>
+              <div class="energy-option">
+                <input type="radio" name="energy" id="energy2" value="2" />
+                <label for="energy2">2</label>
+              </div>
+              <div class="energy-option">
+                <input type="radio" name="energy" id="energy3" value="3" />
+                <label for="energy3">3</label>
+              </div>
+              <div class="energy-option">
+                <input type="radio" name="energy" id="energy4" value="4" />
+                <label for="energy4">4</label>
+              </div>
+              <div class="energy-option">
+                <input type="radio" name="energy" id="energy5" value="5" />
+                <label for="energy5">5</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="mattered">What mattered today?</label>
+            <div class="textarea-with-mic">
+              <textarea id="mattered" maxlength="2000" placeholder="What had weight, meaning, or importance?"></textarea>
+              <button type="button" class="mic-btn" data-target="mattered" aria-label="Use voice input for What mattered today?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="offCourse">What pulled me off course?</label>
+            <div class="textarea-with-mic">
+              <textarea id="offCourse" maxlength="2000" placeholder="What disrupted, distracted, or derailed things?"></textarea>
+              <button type="button" class="mic-btn" data-target="offCourse" aria-label="Use voice input for What pulled me off course?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="supported">What supported me today?</label>
+            <div class="textarea-with-mic">
+              <textarea id="supported" maxlength="2000" placeholder="What helped, steadied, or moved things in the right direction?"></textarea>
+              <button type="button" class="mic-btn" data-target="supported" aria-label="Use voice input for What supported me today?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="remember">What do I want to remember?</label>
+            <div class="textarea-with-mic">
+              <textarea id="remember" maxlength="2000" placeholder="A moment, lesson, insight, or fragment worth keeping..."></textarea>
+              <button type="button" class="mic-btn" data-target="remember" aria-label="Use voice input for What do I want to remember?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="needNext">What do I need next?</label>
+            <div class="textarea-with-mic">
+              <textarea id="needNext" maxlength="2000" placeholder="The next support, focus, or helpful step..."></textarea>
+              <button type="button" class="mic-btn" data-target="needNext" aria-label="Use voice input for What do I need next?">🎤</button>
+            </div>
+          </div>
+
+          <div class="field-help">
+            Tap a mic button once to arm voice input for that field. Tap it again to stop.
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="primary">Save entry</button>
+            <button type="button" id="resetFormBtn">Reset form</button>
+          </div>
+
+          <p class="small" id="formMessage" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="top-tools">
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <h2>Sync settings</h2>
+              <p class="muted">This app is pre-configured for your sync service. You only need to enter the sync secret on each device.</p>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="field">
+              <label>Worker base URL</label>
+              <input type="text" id="workerBaseUrl" readonly />
+            </div>
+
+            <div class="field">
+              <label>Sync key</label>
+              <input type="text" id="syncKey" readonly />
+            </div>
+
+            <div class="field">
+              <label for="syncSecret">Sync secret</label>
+              <input type="password" id="syncSecret" placeholder="Enter the Cloudflare sync secret" />
+            </div>
+
+            <div class="actions">
+              <button type="button" id="saveSyncSettingsBtn">Save sync secret</button>
+              <button type="button" id="pullFromCloudBtn">Pull from cloud</button>
+            </div>
+
+            <div id="syncStatusBox" class="sync-status-box">
+              Cloud sync not configured yet.
+            </div>
+
+            <p class="small" id="syncSettingsMessage"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <h2>Review</h2>
+              <p class="muted">A few simple ways to look back without turning your life into a spreadsheet cult.</p>
+            </div>
+          </div>
+
+          <div class="reflection-buttons">
+            <button type="button" data-reflection="week">This time last week</button>
+            <button type="button" data-reflection="month">This time last month</button>
+            <button type="button" data-reflection="year">This time last year</button>
+            <button type="button" id="showRecentBtn">Recent entries</button>
+          </div>
+
+          <div id="reviewResult" class="review-result">
+            <div class="empty-state">Use the buttons above to pull up a past entry or return to recent entries.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <h2>Backup & data</h2>
+              <p class="muted">JSON preserves everything. CSV is there for later analysis.</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <button type="button" id="exportJsonBtn">Export JSON</button>
+            <button type="button" id="exportCsvBtn">Export CSV</button>
+            <button type="button" id="importJsonTrigger">Import JSON</button>
+            <button type="button" id="clearDataBtn" class="danger">Clear all data</button>
+          </div>
+
+          <input type="file" id="importJsonInput" accept=".json,application/json" hidden />
+          <p class="small" id="dataMessage" aria-live="polite"></p>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <h2>Recent entries</h2>
+              <p class="muted">Newest first.</p>
+            </div>
+          </div>
+
+          <div id="entriesList" class="entry-list">
+            <div class="empty-state">No entries yet. Your future self is currently unbriefed.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "dailyAuditEntriesV5MergedSync";
+    const SYNC_SETTINGS_KEY = "dailyAuditSyncSettingsV3";
+    const SYNC_META_KEY = "dailyAuditSyncMetaV1";
+
+    const FIXED_WORKER_BASE_URL = "https://daily-audit-sync.christopher-d-ramshaw.workers.dev";
+    const FIXED_SYNC_KEY = "chris-daily-audit-main";
+
+    const form = document.getElementById("auditForm");
+    const entryDate = document.getElementById("entryDate");
+    const feeling = document.getElementById("feeling");
+    const mattered = document.getElementById("mattered");
+    const offCourse = document.getElementById("offCourse");
+    const supported = document.getElementById("supported");
+    const remember = document.getElementById("remember");
+    const needNext = document.getElementById("needNext");
+
+    const formMessage = document.getElementById("formMessage");
+    const dataMessage = document.getElementById("dataMessage");
+    const entriesList = document.getElementById("entriesList");
+    const reviewResult = document.getElementById("reviewResult");
+    const speechStatus = document.getElementById("speechStatus");
+
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const importJsonTrigger = document.getElementById("importJsonTrigger");
+    const importJsonInput = document.getElementById("importJsonInput");
+    const clearDataBtn = document.getElementById("clearDataBtn");
+    const resetFormBtn = document.getElementById("resetFormBtn");
+    const showRecentBtn = document.getElementById("showRecentBtn");
+
+    const workerBaseUrlInput = document.getElementById("workerBaseUrl");
+    const syncKeyInput = document.getElementById("syncKey");
+    const syncSecretInput = document.getElementById("syncSecret");
+    const saveSyncSettingsBtn = document.getElementById("saveSyncSettingsBtn");
+    const pullFromCloudBtn = document.getElementById("pullFromCloudBtn");
+    const syncSettingsMessage = document.getElementById("syncSettingsMessage");
+    const syncStatusBox = document.getElementById("syncStatusBox");
+
+    const syncOverlay = document.getElementById("syncOverlay");
+    const syncOverlayMessage = document.getElementById("syncOverlayMessage");
+
+    const micButtons = Array.from(document.querySelectorAll(".mic-btn"));
+
+    let recognition = null;
+    let speechSupported = false;
+    let armedFieldId = null;
+    let activeSessionFieldId = null;
+    let finalTranscript = "";
+    let shouldRestart = false;
+    let restartTimeout = null;
+    let manuallyStopping = false;
+
+    function todayAsLocalDateString() {
+      const now = new Date();
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      return new Date(now - tzOffset).toISOString().slice(0, 10);
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    function generateId() {
+      return (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2);
+    }
+
+    function readEntries() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.error("Could not read entries:", error);
+        return [];
+      }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function normaliseEntry(entry) {
+      const createdAt = entry.createdAt || nowIso();
+      const lastModified = entry.lastModified || createdAt;
+
+      return {
+        id: String(entry.id || generateId()),
+        entryDate: String(entry.entryDate || todayAsLocalDateString()),
+        createdAt: String(createdAt),
+        lastModified: String(lastModified),
+        feeling: String(entry.feeling ?? ""),
+        energy: String(entry.energy ?? ""),
+        mattered: String(entry.mattered ?? ""),
+        offCourse: String(entry.offCourse ?? ""),
+        supported: String(entry.supported ?? ""),
+        remember: String(entry.remember ?? ""),
+        needNext: String(entry.needNext ?? "")
+      };
+    }
+
+    function sortEntriesNewestFirst(entries) {
+      return [...entries].sort((a, b) => {
+        const aTime = new Date(a.entryDate + "T12:00:00").getTime();
+        const bTime = new Date(b.entryDate + "T12:00:00").getTime();
+        if (bTime !== aTime) return bTime - aTime;
+        return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+      });
+    }
+
+    function formatDisplayDate(dateString) {
+      const date = new Date(dateString + "T12:00:00");
+      return date.toLocaleDateString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function formatDisplayTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function getSelectedEnergy() {
+      const checked = document.querySelector('input[name="energy"]:checked');
+      return checked ? checked.value : "";
+    }
+
+    function clearSelectedEnergy() {
+      const radios = document.querySelectorAll('input[name="energy"]');
+      radios.forEach(radio => {
+        radio.checked = false;
+      });
+    }
+
+    function resetForm() {
+      form.reset();
+      entryDate.value = todayAsLocalDateString();
+      clearSelectedEnergy();
+      formMessage.textContent = "";
+      disarmSpeech(false);
+    }
+
+    function entryToCardHtml(entry) {
+      const fields = [
+        ["How do I feel?", entry.feeling],
+        ["Energy", entry.energy],
+        ["What mattered today?", entry.mattered],
+        ["What pulled me off course?", entry.offCourse],
+        ["What supported me today?", entry.supported],
+        ["What do I want to remember?", entry.remember],
+        ["What do I need next?", entry.needNext]
+      ];
+
+      const visibleFields = fields
+        .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "")
+        .map(([label, value]) => `
+          <div class="entry-field">
+            <strong>${escapeHtml(label)}</strong>
+            <p>${escapeHtml(value)}</p>
+          </div>
+        `)
+        .join("");
+
+      return `
+        <article class="entry-card">
+          <div class="entry-top">
+            <div>
+              <div class="entry-date">${escapeHtml(formatDisplayDate(entry.entryDate))}</div>
+              <div class="small">Updated ${escapeHtml(formatDisplayTimestamp(entry.lastModified || entry.createdAt))}</div>
+            </div>
+            <span class="pill">Energy ${escapeHtml(entry.energy)}</span>
+          </div>
+          <div class="entry-fields">
+            ${visibleFields || `<div class="small">This entry is mostly empty, which is still a valid life form.</div>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderEntries() {
+      const entries = sortEntriesNewestFirst(readEntries());
+
+      if (entries.length === 0) {
+        entriesList.innerHTML = `<div class="empty-state">No entries yet. Your future self is currently unbriefed.</div>`;
+        return;
+      }
+
+      entriesList.innerHTML = entries.map(entryToCardHtml).join("");
+    }
+
+    function renderRecentIntoReview() {
+      const entries = sortEntriesNewestFirst(readEntries()).slice(0, 5);
+
+      if (entries.length === 0) {
+        reviewResult.innerHTML = `<div class="empty-state">No entries yet to review.</div>`;
+        return;
+      }
+
+      reviewResult.innerHTML = entries.map(entryToCardHtml).join("");
+    }
+
+    function parseYMDToDate(dateString) {
+      return new Date(dateString + "T12:00:00");
+    }
+
+    function formatYMD(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function findBestMatchingEntry(targetDate) {
+      const entries = readEntries();
+      if (entries.length === 0) return null;
+
+      const targetTime = parseYMDToDate(targetDate).getTime();
+
+      let best = null;
+      let bestDistance = Infinity;
+
+      for (const entry of entries) {
+        const entryTime = parseYMDToDate(entry.entryDate).getTime();
+        const distance = Math.abs(entryTime - targetTime);
+
+        if (distance < bestDistance) {
+          best = entry;
+          bestDistance = distance;
+        }
+      }
+
+      return best;
+    }
+
+    function showReflection(kind) {
+      const now = new Date();
+      now.setHours(12, 0, 0, 0);
+
+      const target = new Date(now);
+
+      if (kind === "week") {
+        target.setDate(target.getDate() - 7);
+      } else if (kind === "month") {
+        target.setMonth(target.getMonth() - 1);
+      } else if (kind === "year") {
+        target.setFullYear(target.getFullYear() - 1);
+      }
+
+      const targetDateString = formatYMD(target);
+      const best = findBestMatchingEntry(targetDateString);
+
+      if (!best) {
+        reviewResult.innerHTML = `<div class="empty-state">No entries found yet.</div>`;
+        return;
+      }
+
+      const targetLabel =
+        kind === "week" ? "This time last week" :
+        kind === "month" ? "This time last month" :
+        "This time last year";
+
+      reviewResult.innerHTML = `
+        <div class="small">${escapeHtml(targetLabel)} — target date ${escapeHtml(formatDisplayDate(targetDateString))}</div>
+        ${entryToCardHtml(best)}
+      `;
+    }
+
+    function buildEntryFromForm() {
+      const timestamp = nowIso();
+      return normaliseEntry({
+        id: generateId(),
+        entryDate: entryDate.value,
+        createdAt: timestamp,
+        lastModified: timestamp,
+        feeling: feeling.value.trim(),
+        energy: getSelectedEnergy(),
+        mattered: mattered.value.trim(),
+        offCourse: offCourse.value.trim(),
+        supported: supported.value.trim(),
+        remember: remember.value.trim(),
+        needNext: needNext.value.trim()
+      });
+    }
+
+    function validateEntry(entry) {
+      if (!entry.entryDate) return "Please choose a date.";
+      if (!entry.energy) return "Please select an energy rating.";
+      return "";
+    }
+
+    function csvEscape(value) {
+      const stringValue = String(value).replace(/\r?\n/g, " ").trim();
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function setSpeechStatus(message, mode = "") {
+      speechStatus.textContent = message;
+      speechStatus.classList.remove("active", "success");
+      if (mode) speechStatus.classList.add(mode);
+    }
+
+    function appendTranscriptToField(fieldId, transcript) {
+      const field = document.getElementById(fieldId);
+      if (!field) return;
+
+      const trimmedTranscript = transcript.trim();
+      if (!trimmedTranscript) return;
+
+      const current = field.value.trim();
+      if (current.length === 0) {
+        field.value = trimmedTranscript;
+      } else {
+        const needsSpace = !/[ \n]$/.test(field.value);
+        field.value = field.value + (needsSpace ? " " : "") + trimmedTranscript;
+      }
+
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.focus();
+    }
+
+    function updateMicButtonStates() {
+      micButtons.forEach(btn => {
+        const isArmed = btn.dataset.target === armedFieldId;
+        btn.classList.toggle("armed", isArmed);
+        btn.setAttribute("aria-pressed", isArmed ? "true" : "false");
+        btn.textContent = isArmed ? "■" : "🎤";
+        btn.title = isArmed ? "Stop voice input" : "Start voice input";
+      });
+    }
+
+    function clearRestartTimeout() {
+      if (restartTimeout) {
+        clearTimeout(restartTimeout);
+        restartTimeout = null;
+      }
+    }
+
+    function appendAndClearFinalTranscript() {
+      if (activeSessionFieldId && finalTranscript.trim()) {
+        appendTranscriptToField(activeSessionFieldId, finalTranscript);
+        finalTranscript = "";
+      }
+    }
+
+    function disarmSpeech(updateStatus = true) {
+      shouldRestart = false;
+      manuallyStopping = true;
+      clearRestartTimeout();
+      appendAndClearFinalTranscript();
+
+      armedFieldId = null;
+      activeSessionFieldId = null;
+
+      updateMicButtonStates();
+
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.warn("Speech stop warning:", error);
+        }
+      }
+
+      if (updateStatus && speechSupported) {
+        setSpeechStatus("Voice input is ready.");
+      }
+
+      setTimeout(() => {
+        manuallyStopping = false;
+      }, 100);
+    }
+
+    function startRecognitionSession() {
+      if (!recognition || !armedFieldId) return;
+
+      activeSessionFieldId = armedFieldId;
+      finalTranscript = "";
+
+      try {
+        recognition.start();
+      } catch (error) {
+        console.warn("Speech start warning:", error);
+        setSpeechStatus("Could not start voice input. Trying again…");
+        clearRestartTimeout();
+        if (shouldRestart && armedFieldId) {
+          restartTimeout = setTimeout(() => {
+            startRecognitionSession();
+          }, 800);
+        }
+      }
+    }
+
+    function setupSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        speechSupported = false;
+        micButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.title = "Speech recognition is not available in this browser.";
+        });
+        setSpeechStatus("Voice input is not available in this browser. The form still works normally.");
+        return;
+      }
+
+      speechSupported = true;
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-GB";
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = true;
+
+      recognition.onstart = () => {
+        setSpeechStatus(`Listening for "${armedFieldId}"… tap the stop button when you're done.`, "active");
+      };
+
+      recognition.onresult = event => {
+        let interimTranscript = "";
+        let confirmedTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            confirmedTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        if (confirmedTranscript) {
+          finalTranscript += " " + confirmedTranscript;
+          appendAndClearFinalTranscript();
+        }
+
+        const previewText = interimTranscript.trim();
+        if (previewText) {
+          setSpeechStatus(`Listening… "${previewText}"`, "active");
+        } else {
+          setSpeechStatus(`Listening for "${armedFieldId}"… tap the stop button when you're done.`, "active");
+        }
+      };
+
+      recognition.onerror = event => {
+        console.warn("Speech error:", event.error);
+
+        if (event.error === "not-allowed") {
+          shouldRestart = false;
+          armedFieldId = null;
+          activeSessionFieldId = null;
+          updateMicButtonStates();
+          setSpeechStatus("Microphone access was blocked. You may need to allow microphone permission.");
+          return;
+        }
+
+        if (event.error === "audio-capture") {
+          shouldRestart = false;
+          armedFieldId = null;
+          activeSessionFieldId = null;
+          updateMicButtonStates();
+          setSpeechStatus("No microphone was available.");
+          return;
+        }
+
+        if (event.error === "aborted" && manuallyStopping) {
+          return;
+        }
+
+        if (event.error === "no-speech") {
+          setSpeechStatus("No speech detected. Still armed — will try again.", "active");
+          return;
+        }
+
+        setSpeechStatus(`Voice input hit an issue (${event.error}). Will retry if still armed.`, "active");
+      };
+
+      recognition.onend = () => {
+        appendAndClearFinalTranscript();
+
+        const stillArmed = shouldRestart && !!armedFieldId;
+
+        if (stillArmed) {
+          setSpeechStatus("Listening paused. Restarting…", "active");
+          clearRestartTimeout();
+          restartTimeout = setTimeout(() => {
+            startRecognitionSession();
+          }, 350);
+        } else {
+          activeSessionFieldId = null;
+          finalTranscript = "";
+          if (!manuallyStopping) {
+            setSpeechStatus("Voice input stopped.");
+          }
+        }
+      };
+
+      micButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.dataset.target;
+          if (!targetId || !recognition) return;
+
+          if (armedFieldId === targetId) {
+            disarmSpeech(true);
+            return;
+          }
+
+          disarmSpeech(false);
+
+          armedFieldId = targetId;
+          shouldRestart = true;
+          manuallyStopping = false;
+          updateMicButtonStates();
+          setSpeechStatus(`Armed for "${targetId}". Starting…`, "active");
+
+          clearRestartTimeout();
+          restartTimeout = setTimeout(() => {
+            startRecognitionSession();
+          }, 150);
+        });
+      });
+    }
+
+    function readSyncSettings() {
+      try {
+        const raw = localStorage.getItem(SYNC_SETTINGS_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return {
+          workerBaseUrl: FIXED_WORKER_BASE_URL,
+          syncKey: FIXED_SYNC_KEY,
+          syncSecret: parsed.syncSecret || ""
+        };
+      } catch {
+        return {
+          workerBaseUrl: FIXED_WORKER_BASE_URL,
+          syncKey: FIXED_SYNC_KEY,
+          syncSecret: ""
+        };
+      }
+    }
+
+    function saveSyncSettings(settings) {
+      localStorage.setItem(SYNC_SETTINGS_KEY, JSON.stringify({
+        syncSecret: settings.syncSecret || ""
+      }));
+    }
+
+    function readSyncMeta() {
+      try {
+        const raw = localStorage.getItem(SYNC_META_KEY);
+        if (!raw) return { lastSyncedAt: "", lastSyncStatus: "never", lastSyncMessage: "" };
+        const parsed = JSON.parse(raw);
+        return {
+          lastSyncedAt: parsed.lastSyncedAt || "",
+          lastSyncStatus: parsed.lastSyncStatus || "never",
+          lastSyncMessage: parsed.lastSyncMessage || ""
+        };
+      } catch {
+        return { lastSyncedAt: "", lastSyncStatus: "never", lastSyncMessage: "" };
+      }
+    }
+
+    function saveSyncMeta(meta) {
+      localStorage.setItem(SYNC_META_KEY, JSON.stringify(meta));
+    }
+
+    function updateSyncStatusBox() {
+      const meta = readSyncMeta();
+      syncStatusBox.classList.remove("success", "error");
+
+      if (meta.lastSyncStatus === "success") {
+        syncStatusBox.classList.add("success");
+        syncStatusBox.textContent = meta.lastSyncedAt
+          ? `Last synced: ${formatDisplayTimestamp(meta.lastSyncedAt)}`
+          : "Last sync succeeded.";
+      } else if (meta.lastSyncStatus === "error") {
+        syncStatusBox.classList.add("error");
+        syncStatusBox.textContent = meta.lastSyncMessage
+          ? `Sync failed: ${meta.lastSyncMessage}`
+          : "Last sync failed.";
+      } else {
+        syncStatusBox.textContent = "Cloud sync not configured yet.";
+      }
+    }
+
+    function loadSyncSettingsIntoForm() {
+      const settings = readSyncSettings();
+      workerBaseUrlInput.value = settings.workerBaseUrl;
+      syncKeyInput.value = settings.syncKey;
+      syncSecretInput.value = settings.syncSecret;
+    }
+
+    function showSyncOverlay(message = "Please wait while your entries are merged and synced.") {
+      syncOverlayMessage.textContent = message;
+      syncOverlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function hideSyncOverlay() {
+      syncOverlay.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    function hasSyncConfigured() {
+      const settings = readSyncSettings();
+      return Boolean(settings.workerBaseUrl.trim() && settings.syncKey.trim() && settings.syncSecret.trim());
+    }
+
+    async function fetchCloudEntries() {
+      const settings = readSyncSettings();
+
+      if (!settings.workerBaseUrl || !settings.syncKey) {
+        throw new Error("Missing sync settings.");
+      }
+
+      const url = new URL(`${settings.workerBaseUrl.replace(/\/$/, "")}/sync`);
+      url.searchParams.set("syncKey", settings.syncKey);
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          ...(settings.syncSecret ? { "X-Sync-Secret": settings.syncSecret } : {})
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Pull failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const entries = Array.isArray(data.entries) ? data.entries : [];
+      return entries.map(normaliseEntry);
+    }
+
+    async function pushEntriesToCloud(entries) {
+      const settings = readSyncSettings();
+
+      if (!settings.workerBaseUrl || !settings.syncKey) {
+        throw new Error("Missing sync settings.");
+      }
+
+      const response = await fetch(`${settings.workerBaseUrl.replace(/\/$/, "")}/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(settings.syncSecret ? { "X-Sync-Secret": settings.syncSecret } : {})
+        },
+        body: JSON.stringify({
+          syncKey: settings.syncKey,
+          entries
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Push failed with status ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    function mergeEntries(localEntries, cloudEntries) {
+      const mergedMap = new Map();
+
+      for (const entry of [...localEntries, ...cloudEntries]) {
+        const normalised = normaliseEntry(entry);
+        const existing = mergedMap.get(normalised.id);
+
+        if (!existing) {
+          mergedMap.set(normalised.id, normalised);
+          continue;
+        }
+
+        const existingTime = new Date(existing.lastModified || existing.createdAt).getTime();
+        const candidateTime = new Date(normalised.lastModified || normalised.createdAt).getTime();
+
+        if (candidateTime >= existingTime) {
+          mergedMap.set(normalised.id, normalised);
+        }
+      }
+
+      return sortEntriesNewestFirst(Array.from(mergedMap.values()));
+    }
+
+    async function performMergedSync() {
+      if (!hasSyncConfigured()) {
+        throw new Error("Cloud sync secret is missing.");
+      }
+
+      showSyncOverlay("Pulling cloud data…");
+      const localEntries = readEntries().map(normaliseEntry);
+      const cloudEntries = await fetchCloudEntries();
+
+      showSyncOverlay("Merging local and cloud entries…");
+      const merged = mergeEntries(localEntries, cloudEntries);
+
+      saveEntries(merged);
+      renderEntries();
+      renderRecentIntoReview();
+
+      showSyncOverlay("Pushing merged data back to cloud…");
+      await pushEntriesToCloud(merged);
+
+      saveSyncMeta({
+        lastSyncedAt: nowIso(),
+        lastSyncStatus: "success",
+        lastSyncMessage: ""
+      });
+      updateSyncStatusBox();
+
+      return merged;
+    }
+
+    function disableUiDuringSync(disabled) {
+      const controls = document.querySelectorAll("input, textarea, button");
+      controls.forEach(control => {
+        if (control.id === "importJsonInput") return;
+        control.disabled = disabled;
+      });
+    }
+
+    saveSyncSettingsBtn.addEventListener("click", () => {
+      saveSyncSettings({
+        syncSecret: syncSecretInput.value.trim()
+      });
+      syncSettingsMessage.textContent = "Sync secret saved on this device.";
+      updateSyncStatusBox();
+    });
+
+    pullFromCloudBtn.addEventListener("click", async () => {
+      try {
+        disableUiDuringSync(true);
+        const merged = await performMergedSync();
+        syncSettingsMessage.textContent = `Pulled and merged ${merged.length} entries.`;
+      } catch (error) {
+        saveSyncMeta({
+          lastSyncedAt: "",
+          lastSyncStatus: "error",
+          lastSyncMessage: error.message
+        });
+        updateSyncStatusBox();
+        syncSettingsMessage.textContent = error.message;
+      } finally {
+        disableUiDuringSync(false);
+        hideSyncOverlay();
+      }
+    });
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const entry = buildEntryFromForm();
+      const validationMessage = validateEntry(entry);
+
+      if (validationMessage) {
+        formMessage.textContent = validationMessage;
+        return;
+      }
+
+      const localEntries = readEntries().map(normaliseEntry);
+      localEntries.push(entry);
+      saveEntries(sortEntriesNewestFirst(localEntries));
+      renderEntries();
+      renderRecentIntoReview();
+
+      if (!hasSyncConfigured()) {
+        formMessage.textContent = "Entry saved locally. Cloud sync secret is not configured yet.";
+        resetForm();
+        return;
+      }
+
+      try {
+        disableUiDuringSync(true);
+        await performMergedSync();
+        formMessage.textContent = "Entry saved and synced.";
+        resetForm();
+      } catch (error) {
+        saveSyncMeta({
+          lastSyncedAt: "",
+          lastSyncStatus: "error",
+          lastSyncMessage: error.message
+        });
+        updateSyncStatusBox();
+        formMessage.textContent = `Entry saved locally, but cloud sync failed: ${error.message}`;
+        resetForm();
+      } finally {
+        disableUiDuringSync(false);
+        hideSyncOverlay();
+      }
+    });
+
+    resetFormBtn.addEventListener("click", () => {
+      resetForm();
+    });
+
+    exportJsonBtn.addEventListener("click", () => {
+      const entries = readEntries();
+      const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
+      downloadBlob(blob, `daily-audit-backup-${todayAsLocalDateString()}.json`);
+      dataMessage.textContent = "JSON export downloaded.";
+    });
+
+    exportCsvBtn.addEventListener("click", () => {
+      const entries = sortEntriesNewestFirst(readEntries());
+
+      if (entries.length === 0) {
+        dataMessage.textContent = "No entries to export.";
+        return;
+      }
+
+      const headers = [
+        "id",
+        "entryDate",
+        "createdAt",
+        "lastModified",
+        "feeling",
+        "energy",
+        "mattered",
+        "offCourse",
+        "supported",
+        "remember",
+        "needNext"
+      ];
+
+      const csvRows = [
+        headers.join(","),
+        ...entries.map(entry => headers.map(header => csvEscape(entry[header] ?? "")).join(","))
+      ];
+
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      downloadBlob(blob, `daily-audit-export-${todayAsLocalDateString()}.csv`);
+      dataMessage.textContent = "CSV export downloaded.";
+    });
+
+    importJsonTrigger.addEventListener("click", () => {
+      importJsonInput.click();
+    });
+
+    importJsonInput.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed)) {
+            throw new Error("Imported JSON is not an array.");
+          }
+
+          const cleaned = parsed
+            .filter(item => item && typeof item === "object")
+            .map(normaliseEntry);
+
+          saveEntries(sortEntriesNewestFirst(cleaned));
+          renderEntries();
+          renderRecentIntoReview();
+          dataMessage.textContent = `Imported ${cleaned.length} entries from JSON.`;
+        } catch (error) {
+          console.error(error);
+          dataMessage.textContent = "Import failed. That JSON appears to be malformed or in the wrong shape.";
+        } finally {
+          importJsonInput.value = "";
+        }
+      };
+
+      reader.readAsText(file);
+    });
+
+    clearDataBtn.addEventListener("click", () => {
+      const confirmed = window.confirm("Clear all saved entries from this browser? This cannot be undone unless you have exported a backup.");
+      if (!confirmed) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SYNC_META_KEY);
+      renderEntries();
+      renderRecentIntoReview();
+      updateSyncStatusBox();
+      dataMessage.textContent = "All local data cleared.";
+    });
+
+    showRecentBtn.addEventListener("click", () => {
+      renderRecentIntoReview();
+    });
+
+    document.querySelectorAll("[data-reflection]").forEach(button => {
+      button.addEventListener("click", () => {
+        showReflection(button.dataset.reflection);
+      });
+    });
+
+    function init() {
+      entryDate.value = todayAsLocalDateString();
+      renderEntries();
+      renderRecentIntoReview();
+      loadSyncSettingsIntoForm();
+      updateSyncStatusBox();
+      setupSpeechRecognition();
+      updateMicButtonStates();
+    }
+
+    init();
+  </script>
+</body>
+</html>
