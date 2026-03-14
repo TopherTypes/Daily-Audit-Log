@@ -45,22 +45,36 @@ function appendTranscriptToField(fieldId, transcript) {
 
 export function createUiHandlers(elements) {
   let speechController = { disarmSpeech: () => {} };
+  const liveRegionMemory = { save: "", sync: "", speech: "" };
+
+  function announceLive(region, message) {
+    const element = region === "save" ? elements.saveLiveRegion : region === "sync" ? elements.syncLiveRegion : elements.speechLiveRegion;
+    if (!element || !message || liveRegionMemory[region] === message) return;
+    liveRegionMemory[region] = message;
+    element.textContent = "";
+    window.setTimeout(() => {
+      element.textContent = message;
+    }, 30);
+  }
 
   function setFormFeedback(message, mode = "") {
     elements.formMessage.textContent = message;
     elements.formMessage.classList.remove("success", "error");
     if (mode) elements.formMessage.classList.add(mode);
     if (elements.stickySaveFeedback) elements.stickySaveFeedback.textContent = message || "Entries save locally first, then sync if configured.";
+    announceLive("save", message);
   }
 
-  function setSpeechStatus(message, mode = "") {
+  function setSpeechStatus(message, mode = "", { announce = true } = {}) {
     elements.speechStatus.textContent = message;
     elements.speechStatus.classList.remove("active", "success");
     if (mode) elements.speechStatus.classList.add(mode);
+    if (announce) announceLive("speech", message);
   }
 
   function showSyncOverlay(message = "Please wait while your entries are merged and synced.") {
     elements.syncOverlayMessage.textContent = message;
+    announceLive("sync", message);
     elements.syncOverlay.classList.remove("hidden");
     document.body.style.overflow = "hidden";
   }
@@ -120,10 +134,14 @@ export function createUiHandlers(elements) {
     elements.syncStatusBox.classList.remove("success", "error");
     if (meta.lastSyncStatus === "success") {
       elements.syncStatusBox.classList.add("success");
-      elements.syncStatusBox.textContent = meta.lastSyncedAt ? `Last synced: ${formatDisplayTimestamp(meta.lastSyncedAt)}` : "Last sync succeeded.";
+      const statusMessage = meta.lastSyncedAt ? `Last synced: ${formatDisplayTimestamp(meta.lastSyncedAt)}` : "Last sync succeeded.";
+      elements.syncStatusBox.textContent = statusMessage;
+      announceLive("sync", statusMessage);
     } else if (meta.lastSyncStatus === "error") {
       elements.syncStatusBox.classList.add("error");
-      elements.syncStatusBox.textContent = meta.lastSyncMessage ? `Sync failed: ${meta.lastSyncMessage}` : "Last sync failed.";
+      const statusMessage = meta.lastSyncMessage ? `Sync failed: ${meta.lastSyncMessage}` : "Last sync failed.";
+      elements.syncStatusBox.textContent = statusMessage;
+      announceLive("sync", statusMessage);
     } else {
       elements.syncStatusBox.textContent = "Cloud sync not configured yet.";
     }
@@ -227,6 +245,7 @@ export function createUiHandlers(elements) {
     elements.saveSyncSettingsBtn.addEventListener("click", () => {
       saveSyncSettings({ syncSecret: elements.syncSecretInput.value.trim() });
       elements.syncSettingsMessage.textContent = "Sync secret saved on this device.";
+      announceLive("sync", "Sync secret saved on this device.");
       updateSyncStatusBox();
     });
 
@@ -235,10 +254,12 @@ export function createUiHandlers(elements) {
         disableUiDuringSync(true);
         const merged = await performMergedSync();
         elements.syncSettingsMessage.textContent = `Pulled and merged ${merged.length} entries.`;
+        announceLive("sync", `Pulled and merged ${merged.length} entries.`);
       } catch (error) {
         saveSyncMeta({ lastSyncedAt: "", lastSyncStatus: "error", lastSyncMessage: error.message });
         updateSyncStatusBox();
         elements.syncSettingsMessage.textContent = error.message;
+        announceLive("sync", error.message);
       } finally {
         disableUiDuringSync(false);
         hideSyncOverlay();
@@ -306,17 +327,20 @@ export function createUiHandlers(elements) {
       const blob = new Blob([JSON.stringify(readEntries(), null, 2)], { type: "application/json" });
       downloadBlob(blob, `daily-audit-backup-${todayAsLocalDateString()}.json`);
       elements.dataMessage.textContent = "JSON export downloaded.";
+      announceLive("save", "JSON export downloaded.");
     });
 
     elements.exportCsvBtn.addEventListener("click", () => {
       const entries = sortEntriesNewestFirst(readEntries());
       if (entries.length === 0) {
         elements.dataMessage.textContent = "No entries to export.";
+        announceLive("save", "No entries to export.");
         return;
       }
       const blob = new Blob([entriesToCsv(entries)], { type: "text/csv;charset=utf-8;" });
       downloadBlob(blob, `daily-audit-export-${todayAsLocalDateString()}.csv`);
       elements.dataMessage.textContent = "CSV export downloaded.";
+      announceLive("save", "CSV export downloaded.");
     });
 
     elements.importJsonTrigger.addEventListener("click", () => elements.importJsonInput.click());
@@ -333,8 +357,10 @@ export function createUiHandlers(elements) {
           saveEntries(sortEntriesNewestFirst(cleaned));
           refreshEntries();
           elements.dataMessage.textContent = `Imported ${cleaned.length} entries from JSON.`;
+          announceLive("save", `Imported ${cleaned.length} entries from JSON.`);
         } catch {
           elements.dataMessage.textContent = "Import failed. That JSON appears to be malformed or in the wrong shape.";
+          announceLive("save", "Import failed. That JSON appears to be malformed or in the wrong shape.");
         } finally {
           elements.importJsonInput.value = "";
         }
@@ -349,6 +375,7 @@ export function createUiHandlers(elements) {
       refreshEntries();
       updateSyncStatusBox();
       elements.dataMessage.textContent = "All local data cleared.";
+      announceLive("save", "All local data cleared.");
     });
 
     document.querySelectorAll("[data-reflection]").forEach(button => button.addEventListener("click", () => showReflection(button.dataset.reflection)));

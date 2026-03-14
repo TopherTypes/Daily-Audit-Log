@@ -1,12 +1,13 @@
 :root {
   --bg: #f6f7fb;
   --panel: #ffffff;
-  --panel-alt: #f0f3f8;
+  --panel-alt: #eef2f7;
   --text: #1f2937;
-  --muted: #6b7280;
-  --border: #d7dde7;
+  --muted: #4b5563;
+  --border: #c6cfdb;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
+  --focus-ring: #0f3ea8;
   --danger: #b91c1c;
   --danger-hover: #991b1b;
   --success: #166534;
