@@ -1,3 +1,4 @@
+import { QUESTION_SCHEMA, validateQuestionSchema } from "../config/questions.js";
 import { formatDisplayDate, formatDisplayTimestamp } from "../utils/date.js";
 
 export function escapeHtml(value) {
@@ -9,18 +10,32 @@ export function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-export function entryToCardHtml(entry) {
-  const fields = [
-    ["How do I feel?", entry.feeling],
-    ["Energy", entry.energy],
-    ["What mattered today?", entry.mattered],
-    ["What pulled me off course?", entry.offCourse],
-    ["What supported me today?", entry.supported],
-    ["What do I want to remember?", entry.remember],
-    ["What do I need next?", entry.needNext]
-  ];
+function questionToFieldHtml(question) {
+  if (question.type !== "textarea") {
+    console.error(`Unsupported field type \"${question.type}\" for question \"${question.id}\".`);
+    return "";
+  }
 
-  const visibleFields = fields
+  const micButton = question.supportsSpeech
+    ? `<button type="button" class="mic-btn" data-target="${escapeHtml(question.id)}" aria-label="Use voice input for ${escapeHtml(question.label)}">🎤</button>`
+    : "";
+
+  return `<div class="field"><label for="${escapeHtml(question.id)}">${escapeHtml(question.label)}</label><div class="textarea-with-mic"><textarea id="${escapeHtml(question.id)}" maxlength="${escapeHtml(question.maxLength)}" placeholder="${escapeHtml(question.placeholder)}"></textarea>${micButton}</div></div>`;
+}
+
+export function renderAuditQuestionFields(questionFieldsEl) {
+  if (!questionFieldsEl) {
+    console.error("Question field container is missing from the DOM.");
+    return;
+  }
+
+  validateQuestionSchema();
+  questionFieldsEl.innerHTML = QUESTION_SCHEMA.map(questionToFieldHtml).join("");
+}
+
+export function entryToCardHtml(entry) {
+  const visibleFields = QUESTION_SCHEMA
+    .map(question => [question.label, entry[question.id]])
     .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "")
     .map(([label, value]) => `<div class="entry-field"><strong>${escapeHtml(label)}</strong><p>${escapeHtml(value)}</p></div>`)
     .join("");
