@@ -65,7 +65,6 @@ export function init() {
 
   const boundHandlers = uiHandlers.bind();
   elements.entryDate.value = todayAsLocalDateString();
-  boundHandlers.refreshEntries();
   boundHandlers.loadSyncSettingsIntoForm();
   boundHandlers.updateSyncStatusBox();
   speechController.setup();
