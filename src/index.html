@@ -27,7 +27,14 @@
       </p>
     </header>
 
-    <div class="grid">
+    <nav class="tab-nav" aria-label="Primary sections">
+      <button type="button" class="tab-btn active" data-tab="journalPanel">Journal</button>
+      <button type="button" class="tab-btn" data-tab="reviewPanel">Review</button>
+      <button type="button" class="tab-btn" data-tab="settingsPanel">Settings &amp; Sync</button>
+      <button type="button" class="tab-btn" data-tab="dataPanel">Data</button>
+    </nav>
+
+    <section id="journalPanel" class="tab-panel active" aria-label="Journal">
       <section class="card">
         <div class="section-header">
           <div>
@@ -49,44 +56,79 @@
           <div id="questionFields" class="stack"></div>
 
           <div class="field-help">Tap a mic button once to arm voice input for that field. Tap it again to stop.</div>
-          <div class="actions"><button type="submit" class="primary">Save entry</button><button type="button" id="resetFormBtn">Reset form</button></div>
-          <p class="small" id="formMessage" aria-live="polite"></p>
+
+          <div class="actions submit-actions">
+            <button type="submit" class="primary">Save entry</button>
+            <button type="button" id="resetFormBtn">Reset form</button>
+          </div>
+          <p class="small inline-feedback" id="formMessage" aria-live="polite"></p>
         </form>
       </section>
+    </section>
 
-      <section class="top-tools">
-        <div class="card">
-          <div class="section-header"><div><h2>Sync settings</h2><p class="muted">This app is pre-configured for your sync service. You only need to enter the sync secret on each device.</p></div></div>
-          <div class="stack">
-            <div class="field"><label>Worker base URL</label><input type="text" id="workerBaseUrl" readonly /></div>
-            <div class="field"><label>Sync key</label><input type="text" id="syncKey" readonly /></div>
-            <div class="field"><label for="syncSecret">Sync secret</label><input type="password" id="syncSecret" placeholder="Enter the Cloudflare sync secret" /></div>
-            <div class="actions"><button type="button" id="saveSyncSettingsBtn">Save sync secret</button><button type="button" id="pullFromCloudBtn">Pull from cloud</button></div>
-            <div id="syncStatusBox" class="sync-status-box">Cloud sync not configured yet.</div>
-            <p class="small" id="syncSettingsMessage"></p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="section-header"><div><h2>Review</h2><p class="muted">A few simple ways to look back without turning your life into a spreadsheet cult.</p></div></div>
-          <div class="reflection-buttons"><button type="button" data-reflection="week">This time last week</button><button type="button" data-reflection="month">This time last month</button><button type="button" data-reflection="year">This time last year</button><button type="button" id="showRecentBtn">Recent entries</button></div>
-          <div id="reviewResult" class="review-result"><div class="empty-state">Use the buttons above to pull up a past entry or return to recent entries.</div></div>
-        </div>
-
-        <div class="card">
-          <div class="section-header"><div><h2>Backup & data</h2><p class="muted">JSON preserves everything. CSV is there for later analysis.</p></div></div>
-          <div class="toolbar"><button type="button" id="exportJsonBtn">Export JSON</button><button type="button" id="exportCsvBtn">Export CSV</button><button type="button" id="importJsonTrigger">Import JSON</button><button type="button" id="clearDataBtn" class="danger">Clear all data</button></div>
-          <input type="file" id="importJsonInput" accept=".json,application/json" hidden />
-          <p class="small" id="dataMessage" aria-live="polite"></p>
-        </div>
-
-        <div class="card">
-          <div class="section-header"><div><h2>Recent entries</h2><p class="muted">Newest first.</p></div></div>
-          <div id="entriesList" class="entry-list"><div class="empty-state">No entries yet. Your future self is currently unbriefed.</div></div>
-        </div>
+    <section id="reviewPanel" class="tab-panel" aria-label="Review" hidden>
+      <section class="card">
+        <div class="section-header"><div><h2>Reflection prompts</h2><p class="muted">Pull up a nearby entry for perspective.</p></div></div>
+        <div class="reflection-buttons"><button type="button" data-reflection="week">This time last week</button><button type="button" data-reflection="month">This time last month</button><button type="button" data-reflection="year">This time last year</button></div>
+        <div id="reviewResult" class="review-result"><div class="empty-state">Use the buttons above to pull up a past entry.</div></div>
       </section>
-    </div>
+
+      <section class="card">
+        <div class="section-header"><div><h2>Recent entries</h2><p class="muted">Filter your timeline and skim quickly.</p></div></div>
+        <div class="filter-row">
+          <label for="recentFilter">Date range</label>
+          <select id="recentFilter">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="custom">Custom range</option>
+          </select>
+        </div>
+        <div id="customDateFilters" class="custom-date-filters hidden" aria-hidden="true">
+          <div class="field"><label for="customStartDate">Start date</label><input type="date" id="customStartDate" /></div>
+          <div class="field"><label for="customEndDate">End date</label><input type="date" id="customEndDate" /></div>
+        </div>
+        <div id="entriesList" class="entry-list"><div class="empty-state">No entries yet. Your future self is currently unbriefed.</div></div>
+      </section>
+    </section>
+
+    <section id="settingsPanel" class="tab-panel" aria-label="Settings and sync" hidden>
+      <details class="mobile-accordion" open>
+        <summary>Sync</summary>
+        <div class="accordion-content">
+          <section class="card">
+            <div class="section-header"><div><h2>Sync settings</h2><p class="muted">This app is pre-configured for your sync service. You only need to enter the sync secret on each device.</p></div></div>
+            <div class="stack">
+              <div class="field"><label>Worker base URL</label><input type="text" id="workerBaseUrl" readonly /></div>
+              <div class="field"><label>Sync key</label><input type="text" id="syncKey" readonly /></div>
+              <div class="field"><label for="syncSecret">Sync secret</label><input type="password" id="syncSecret" placeholder="Enter the Cloudflare sync secret" /></div>
+              <div class="actions"><button type="button" id="saveSyncSettingsBtn">Save sync secret</button><button type="button" id="pullFromCloudBtn">Pull from cloud</button></div>
+              <div id="syncStatusBox" class="sync-status-box">Cloud sync not configured yet.</div>
+              <p class="small" id="syncSettingsMessage"></p>
+            </div>
+          </section>
+        </div>
+      </details>
+    </section>
+
+    <section id="dataPanel" class="tab-panel" aria-label="Data" hidden>
+      <details class="mobile-accordion" open>
+        <summary>Backup and import/export</summary>
+        <div class="accordion-content">
+          <section class="card">
+            <div class="section-header"><div><h2>Backup &amp; data</h2><p class="muted">JSON preserves everything. CSV is there for later analysis.</p></div></div>
+            <div class="toolbar"><button type="button" id="exportJsonBtn">Export JSON</button><button type="button" id="exportCsvBtn">Export CSV</button><button type="button" id="importJsonTrigger">Import JSON</button><button type="button" id="clearDataBtn" class="danger">Clear all data</button></div>
+            <input type="file" id="importJsonInput" accept=".json,application/json" hidden />
+            <p class="small" id="dataMessage" aria-live="polite"></p>
+          </section>
+        </div>
+      </details>
+    </section>
   </main>
+
+  <div class="sticky-save-bar">
+    <button type="submit" class="primary" form="auditForm">Save entry</button>
+    <span id="stickySaveFeedback" class="small" aria-live="polite">Entries save locally first, then sync if configured.</span>
+  </div>
 
   <script type="module" src="./js/app.js"></script>
 </body>

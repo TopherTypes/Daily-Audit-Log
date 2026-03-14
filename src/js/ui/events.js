@@ -45,6 +45,14 @@ function appendTranscriptToField(fieldId, transcript) {
 
 export function createUiHandlers(elements) {
   let speechController = { disarmSpeech: () => {} };
+
+  function setFormFeedback(message, mode = "") {
+    elements.formMessage.textContent = message;
+    elements.formMessage.classList.remove("success", "error");
+    if (mode) elements.formMessage.classList.add(mode);
+    if (elements.stickySaveFeedback) elements.stickySaveFeedback.textContent = message || "Entries save locally first, then sync if configured.";
+  }
+
   function setSpeechStatus(message, mode = "") {
     elements.speechStatus.textContent = message;
     elements.speechStatus.classList.remove("active", "success");
@@ -63,15 +71,41 @@ export function createUiHandlers(elements) {
   }
 
   function disableUiDuringSync(disabled) {
-    document.querySelectorAll("input, textarea, button").forEach(control => {
+    document.querySelectorAll("input, textarea, button, select").forEach(control => {
       if (control.id !== "importJsonInput") control.disabled = disabled;
     });
   }
 
+  // Keep recent-entry filtering centralized so Review and future exports stay consistent.
+  function getFilteredEntries(entries) {
+    const filterValue = elements.recentFilter?.value || "7";
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+
+    if (filterValue === "custom") {
+      const startValue = elements.customStartDate?.value;
+      const endValue = elements.customEndDate?.value;
+      if (!startValue || !endValue) return [];
+      const start = parseYMDToDate(startValue);
+      const end = parseYMDToDate(endValue);
+      if (start.getTime() > end.getTime()) return [];
+      return entries.filter(entry => {
+        const entryTime = parseYMDToDate(entry.entryDate).getTime();
+        return entryTime >= start.getTime() && entryTime <= end.getTime();
+      });
+    }
+
+    const days = Number(filterValue);
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - (days - 1));
+    cutoff.setHours(0, 0, 0, 0);
+    return entries.filter(entry => parseYMDToDate(entry.entryDate).getTime() >= cutoff.getTime());
+  }
+
   function refreshEntries() {
     const entries = sortEntriesNewestFirst(readEntries().map(normaliseEntry));
-    renderEntries(elements.entriesList, entries);
     renderReviewList(elements.reviewResult, entries.slice(0, 5));
+    renderEntries(elements.entriesList, getFilteredEntries(entries));
   }
 
   function loadSyncSettingsIntoForm() {
@@ -116,11 +150,11 @@ export function createUiHandlers(elements) {
     return merged;
   }
 
-  function resetForm() {
+  function resetForm({ preserveFeedback = false } = {}) {
     elements.form.reset();
     elements.entryDate.value = todayAsLocalDateString();
     clearSelectedEnergy();
-    elements.formMessage.textContent = "";
+    if (!preserveFeedback) setFormFeedback("");
     speechController.disarmSpeech(false);
   }
 
@@ -147,7 +181,49 @@ export function createUiHandlers(elements) {
     renderReflectionResult(elements.reviewResult, kind, targetDateString, best);
   }
 
+  function updateCustomDateVisibility() {
+    const showCustom = elements.recentFilter?.value === "custom";
+    elements.customDateFilters?.classList.toggle("hidden", !showCustom);
+    if (elements.customDateFilters) {
+      elements.customDateFilters.setAttribute("aria-hidden", String(!showCustom));
+    }
+  }
+
+  function setActiveTab(tabId) {
+    elements.tabButtons.forEach(button => {
+      button.classList.toggle("active", button.dataset.tab === tabId);
+    });
+    elements.tabPanels.forEach(panel => {
+      const active = panel.id === tabId;
+      panel.classList.toggle("active", active);
+      panel.hidden = !active;
+    });
+  }
+
+  // Optional sections stay expanded on desktop, but collapse by default on mobile.
+  function syncAccordionMode() {
+    const isMobile = window.innerWidth <= 900;
+    elements.accordions.forEach(accordion => {
+      accordion.open = !isMobile;
+    });
+  }
+
   function bind() {
+    elements.tabButtons.forEach(button => {
+      button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+    });
+
+    syncAccordionMode();
+    window.addEventListener("resize", syncAccordionMode);
+
+    elements.recentFilter?.addEventListener("change", () => {
+      updateCustomDateVisibility();
+      refreshEntries();
+    });
+    elements.customStartDate?.addEventListener("change", refreshEntries);
+    elements.customEndDate?.addEventListener("change", refreshEntries);
+    updateCustomDateVisibility();
+
     elements.saveSyncSettingsBtn.addEventListener("click", () => {
       saveSyncSettings({ syncSecret: elements.syncSecretInput.value.trim() });
       elements.syncSettingsMessage.textContent = "Sync secret saved on this device.";
@@ -194,7 +270,7 @@ export function createUiHandlers(elements) {
 
       const validationMessage = validateEntry(entry);
       if (validationMessage) {
-        elements.formMessage.textContent = validationMessage;
+        setFormFeedback(validationMessage, "error");
         return;
       }
 
@@ -204,21 +280,21 @@ export function createUiHandlers(elements) {
       refreshEntries();
 
       if (!hasSyncConfigured(readSyncSettings())) {
-        elements.formMessage.textContent = "Entry saved locally. Cloud sync secret is not configured yet.";
-        resetForm();
+        setFormFeedback("Entry saved locally. Cloud sync secret is not configured yet.", "success");
+        resetForm({ preserveFeedback: true });
         return;
       }
 
       try {
         disableUiDuringSync(true);
         await performMergedSync();
-        elements.formMessage.textContent = "Entry saved and synced.";
+        setFormFeedback("Entry saved and synced.", "success");
       } catch (error) {
         saveSyncMeta({ lastSyncedAt: "", lastSyncStatus: "error", lastSyncMessage: error.message });
         updateSyncStatusBox();
-        elements.formMessage.textContent = `Entry saved locally, but cloud sync failed: ${error.message}`;
+        setFormFeedback(`Entry saved locally, but cloud sync failed: ${error.message}`, "error");
       } finally {
-        resetForm();
+        resetForm({ preserveFeedback: true });
         disableUiDuringSync(false);
         hideSyncOverlay();
       }
@@ -275,7 +351,6 @@ export function createUiHandlers(elements) {
       elements.dataMessage.textContent = "All local data cleared.";
     });
 
-    elements.showRecentBtn.addEventListener("click", () => renderReviewList(elements.reviewResult, sortEntriesNewestFirst(readEntries()).slice(0, 5)));
     document.querySelectorAll("[data-reflection]").forEach(button => button.addEventListener("click", () => showReflection(button.dataset.reflection)));
 
     return { setSpeechStatus, appendTranscriptToField, resetForm, refreshEntries, loadSyncSettingsIntoForm, updateSyncStatusBox };
