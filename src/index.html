@@ -46,30 +46,7 @@
             <input type="date" id="entryDate" required />
           </div>
 
-          <div class="field">
-            <label for="feeling">How do I feel?</label>
-            <div class="textarea-with-mic">
-              <textarea id="feeling" maxlength="2000" placeholder="A quick read on your internal weather..."></textarea>
-              <button type="button" class="mic-btn" data-target="feeling" aria-label="Use voice input for How do I feel?">🎤</button>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Energy (1–5)</label>
-            <div class="energy-group" role="radiogroup" aria-label="Energy rating">
-              <div class="energy-option"><input type="radio" name="energy" id="energy1" value="1" required /><label for="energy1">1</label></div>
-              <div class="energy-option"><input type="radio" name="energy" id="energy2" value="2" /><label for="energy2">2</label></div>
-              <div class="energy-option"><input type="radio" name="energy" id="energy3" value="3" /><label for="energy3">3</label></div>
-              <div class="energy-option"><input type="radio" name="energy" id="energy4" value="4" /><label for="energy4">4</label></div>
-              <div class="energy-option"><input type="radio" name="energy" id="energy5" value="5" /><label for="energy5">5</label></div>
-            </div>
-          </div>
-
-          <div class="field"><label for="mattered">What mattered today?</label><div class="textarea-with-mic"><textarea id="mattered" maxlength="2000" placeholder="What had weight, meaning, or importance?"></textarea><button type="button" class="mic-btn" data-target="mattered" aria-label="Use voice input for What mattered today?">🎤</button></div></div>
-          <div class="field"><label for="offCourse">What pulled me off course?</label><div class="textarea-with-mic"><textarea id="offCourse" maxlength="2000" placeholder="What disrupted, distracted, or derailed things?"></textarea><button type="button" class="mic-btn" data-target="offCourse" aria-label="Use voice input for What pulled me off course?">🎤</button></div></div>
-          <div class="field"><label for="supported">What supported me today?</label><div class="textarea-with-mic"><textarea id="supported" maxlength="2000" placeholder="What helped, steadied, or moved things in the right direction?"></textarea><button type="button" class="mic-btn" data-target="supported" aria-label="Use voice input for What supported me today?">🎤</button></div></div>
-          <div class="field"><label for="remember">What do I want to remember?</label><div class="textarea-with-mic"><textarea id="remember" maxlength="2000" placeholder="A moment, lesson, insight, or fragment worth keeping..."></textarea><button type="button" class="mic-btn" data-target="remember" aria-label="Use voice input for What do I want to remember?">🎤</button></div></div>
-          <div class="field"><label for="needNext">What do I need next?</label><div class="textarea-with-mic"><textarea id="needNext" maxlength="2000" placeholder="The next support, focus, or helpful step..."></textarea><button type="button" class="mic-btn" data-target="needNext" aria-label="Use voice input for What do I need next?">🎤</button></div></div>
+          <div id="questionFields" class="stack"></div>
 
           <div class="field-help">Tap a mic button once to arm voice input for that field. Tap it again to stop.</div>
           <div class="actions"><button type="submit" class="primary">Save entry</button><button type="button" id="resetFormBtn">Reset form</button></div>

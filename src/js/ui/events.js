@@ -3,6 +3,7 @@ import { entriesToCsv } from "../utils/csv.js";
 import { readEntries, saveEntries, readSyncSettings, saveSyncSettings, readSyncMeta, saveSyncMeta, clearAllData, generateId } from "../services/storage.js";
 import { fetchCloudEntries, hasSyncConfigured, pushEntriesToCloud } from "../services/sync.js";
 import { mergeEntries, normaliseEntry, sortEntriesNewestFirst } from "../state/store.js";
+import { QUESTION_SCHEMA } from "../config/questions.js";
 import { renderEntries, renderReviewList, renderReflectionResult } from "./render.js";
 
 function getSelectedEnergy() {
@@ -171,18 +172,24 @@ export function createUiHandlers(elements) {
     elements.form.addEventListener("submit", async event => {
       event.preventDefault();
       const timestamp = nowIso();
+      const schemaFieldValues = Object.fromEntries(
+        QUESTION_SCHEMA.map(question => {
+          const input = elements.questionInputs[question.id];
+          if (!input) {
+            console.error(`Missing input for schema field "${question.id}".`);
+            return [question.id, ""];
+          }
+          return [question.id, input.value.trim()];
+        })
+      );
+
       const entry = normaliseEntry({
         id: generateId(),
         entryDate: elements.entryDate.value,
         createdAt: timestamp,
         lastModified: timestamp,
-        feeling: elements.feeling.value.trim(),
         energy: getSelectedEnergy(),
-        mattered: elements.mattered.value.trim(),
-        offCourse: elements.offCourse.value.trim(),
-        supported: elements.supported.value.trim(),
-        remember: elements.remember.value.trim(),
-        needNext: elements.needNext.value.trim()
+        ...schemaFieldValues
       });
 
       const validationMessage = validateEntry(entry);

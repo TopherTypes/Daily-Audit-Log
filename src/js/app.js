@@ -1,17 +1,18 @@
-import { todayAsLocalDateString } from "./utils/date.js";
-import { createUiHandlers } from "./ui/events.js";
+import { QUESTION_SCHEMA, validateQuestionSchema } from "./config/questions.js";
 import { createSpeechController } from "./services/speech.js";
+import { createUiHandlers } from "./ui/events.js";
+import { renderAuditQuestionFields } from "./ui/render.js";
+import { todayAsLocalDateString } from "./utils/date.js";
 
 function collectElements() {
+  const questionInputs = Object.fromEntries(
+    QUESTION_SCHEMA.map(question => [question.id, document.getElementById(question.id)])
+  );
+
   return {
     form: document.getElementById("auditForm"),
     entryDate: document.getElementById("entryDate"),
-    feeling: document.getElementById("feeling"),
-    mattered: document.getElementById("mattered"),
-    offCourse: document.getElementById("offCourse"),
-    supported: document.getElementById("supported"),
-    remember: document.getElementById("remember"),
-    needNext: document.getElementById("needNext"),
+    questionInputs,
     formMessage: document.getElementById("formMessage"),
     dataMessage: document.getElementById("dataMessage"),
     entriesList: document.getElementById("entriesList"),
@@ -38,6 +39,9 @@ function collectElements() {
 }
 
 export function init() {
+  validateQuestionSchema();
+  renderAuditQuestionFields(document.getElementById("questionFields"));
+
   const elements = collectElements();
   const uiHandlers = createUiHandlers(elements);
 
