@@ -17,7 +17,7 @@ function questionToFieldHtml(question) {
   }
 
   const micButton = question.supportsSpeech
-    ? `<button type="button" class="mic-btn" data-target="${escapeHtml(question.id)}" aria-label="Use voice input for ${escapeHtml(question.label)}">🎤</button>`
+    ? `<button type="button" class="mic-btn" data-target="${escapeHtml(question.id)}" aria-label="Start voice input for ${escapeHtml(question.label)}" aria-pressed="false"><span aria-hidden="true">🎤</span> <span class="mic-btn-text">Voice</span></button>`
     : "";
 
   return `<div class="field"><label for="${escapeHtml(question.id)}">${escapeHtml(question.label)}</label><div class="textarea-with-mic"><textarea id="${escapeHtml(question.id)}" maxlength="${escapeHtml(question.maxLength)}" placeholder="${escapeHtml(question.placeholder)}"></textarea>${micButton}</div></div>`;

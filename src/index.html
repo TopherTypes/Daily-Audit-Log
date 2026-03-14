@@ -43,7 +43,7 @@
           </div>
         </div>
 
-        <div id="speechStatus" class="speech-status">
+        <div id="speechStatus" class="speech-status" aria-atomic="true">
           Voice input is ready if your browser supports it.
         </div>
 
@@ -53,15 +53,27 @@
             <input type="date" id="entryDate" required />
           </div>
 
+          <fieldset class="field energy-fieldset">
+            <legend>Energy rating</legend>
+            <div class="energy-group" role="radiogroup" aria-describedby="energyHelp">
+              <div class="energy-option"><input type="radio" id="energy1" name="energy" value="1" /><label for="energy1">1 Very low</label></div>
+              <div class="energy-option"><input type="radio" id="energy2" name="energy" value="2" /><label for="energy2">2 Low</label></div>
+              <div class="energy-option"><input type="radio" id="energy3" name="energy" value="3" /><label for="energy3">3 Steady</label></div>
+              <div class="energy-option"><input type="radio" id="energy4" name="energy" value="4" /><label for="energy4">4 Good</label></div>
+              <div class="energy-option"><input type="radio" id="energy5" name="energy" value="5" /><label for="energy5">5 High</label></div>
+            </div>
+            <p id="energyHelp" class="small">Pick the one that best describes your current energy.</p>
+          </fieldset>
+
           <div id="questionFields" class="stack"></div>
 
-          <div class="field-help">Tap a mic button once to arm voice input for that field. Tap it again to stop.</div>
+          <div class="field-help">Tap a Voice button once to arm voice input for that field. Tap Stop to end dictation.</div>
 
           <div class="actions submit-actions">
             <button type="submit" class="primary">Save entry</button>
             <button type="button" id="resetFormBtn">Reset form</button>
           </div>
-          <p class="small inline-feedback" id="formMessage" aria-live="polite"></p>
+          <p class="small inline-feedback" id="formMessage"></p>
         </form>
       </section>
     </section>
@@ -118,7 +130,7 @@
             <div class="section-header"><div><h2>Backup &amp; data</h2><p class="muted">JSON preserves everything. CSV is there for later analysis.</p></div></div>
             <div class="toolbar"><button type="button" id="exportJsonBtn">Export JSON</button><button type="button" id="exportCsvBtn">Export CSV</button><button type="button" id="importJsonTrigger">Import JSON</button><button type="button" id="clearDataBtn" class="danger">Clear all data</button></div>
             <input type="file" id="importJsonInput" accept=".json,application/json" hidden />
-            <p class="small" id="dataMessage" aria-live="polite"></p>
+            <p class="small" id="dataMessage"></p>
           </section>
         </div>
       </details>
@@ -127,8 +139,12 @@
 
   <div class="sticky-save-bar">
     <button type="submit" class="primary" form="auditForm">Save entry</button>
-    <span id="stickySaveFeedback" class="small" aria-live="polite">Entries save locally first, then sync if configured.</span>
+    <span id="stickySaveFeedback" class="small">Entries save locally first, then sync if configured.</span>
   </div>
+
+  <div id="saveLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <div id="syncLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <div id="speechLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
   <script type="module" src="./js/app.js"></script>
 </body>

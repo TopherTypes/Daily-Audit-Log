@@ -17,7 +17,9 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
       const isArmed = btn.dataset.target === armedFieldId;
       btn.classList.toggle("armed", isArmed);
       btn.setAttribute("aria-pressed", isArmed ? "true" : "false");
-      btn.textContent = isArmed ? "■" : "🎤";
+      btn.innerHTML = isArmed
+        ? `<span aria-hidden="true">■</span> <span class="mic-btn-text">Stop</span>`
+        : `<span aria-hidden="true">🎤</span> <span class="mic-btn-text">Voice</span>`;
       btn.title = isArmed ? "Stop voice input" : "Start voice input";
     });
   }
@@ -84,7 +86,7 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
     recognition.maxAlternatives = 1;
     recognition.continuous = true;
 
-    recognition.onstart = () => setStatus(`Listening for "${armedFieldId}"… tap the stop button when you're done.`, "active");
+    recognition.onstart = () => setStatus(`Listening for "${armedFieldId}". Tap Stop when you are done.`, "active");
     recognition.onresult = event => {
       let interimTranscript = "";
       let confirmedTranscript = "";
@@ -98,7 +100,7 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
         appendAndClearFinalTranscript();
       }
       const preview = interimTranscript.trim();
-      setStatus(preview ? `Listening… "${preview}"` : `Listening for "${armedFieldId}"… tap the stop button when you're done.`, "active");
+      if (preview.length === 0) setStatus(`Listening for "${armedFieldId}". Tap Stop when you are done.`, "active", { announce: false });
     };
 
     recognition.onerror = event => {
@@ -120,7 +122,7 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
       }
       if (event.error === "aborted" && manuallyStopping) return;
       if (event.error === "no-speech") {
-        setStatus("No speech detected. Still armed — will try again.", "active");
+        setStatus("No speech detected. Still armed and will try again.", "active");
         return;
       }
       setStatus(`Voice input hit an issue (${event.error}). Will retry if still armed.`, "active");
@@ -130,7 +132,7 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
       appendAndClearFinalTranscript();
       const stillArmed = shouldRestart && !!armedFieldId;
       if (stillArmed) {
-        setStatus("Listening paused. Restarting…", "active");
+        setStatus("Listening paused. Restarting.", "active", { announce: false });
         clearRestartTimeout();
         restartTimeout = setTimeout(startRecognitionSession, 350);
       } else {
@@ -152,7 +154,7 @@ export function createSpeechController({ micButtons, setStatus, onTranscript }) 
         shouldRestart = true;
         manuallyStopping = false;
         updateMicButtonStates();
-        setStatus(`Armed for "${targetId}". Starting…`, "active");
+        setStatus(`Armed for "${targetId}". Starting voice input.`, "active");
         clearRestartTimeout();
         restartTimeout = setTimeout(startRecognitionSession, 150);
       });
