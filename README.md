@@ -33,3 +33,13 @@ The app now uses a small frontend module structure under `src/`:
 - `src/styles/tokens.css` now defines the design token system (color, spacing, typography, radius, elevation, motion).
 - The app respects `prefers-color-scheme` by default and includes a manual Light/Dark/System theme toggle persisted in localStorage.
 - Component and layout styles use shared tokenized states for focus, hover, active, disabled, and subtle reduced-motion-aware transitions.
+
+## GitHub Pages deployment
+
+This repository is now GitHub Pages-ready:
+
+- `index.html` at the repository root redirects to `src/index.html`, which is required because GitHub Pages serves the site entry point from `/index.html`.
+- App assets remain in `src/` and continue to load using relative paths.
+
+For a project site, set **Settings → Pages → Build and deployment → Source** to **Deploy from a branch**, then choose your default branch and `/ (root)`.
+
