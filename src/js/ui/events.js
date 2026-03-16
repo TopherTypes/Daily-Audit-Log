@@ -29,9 +29,85 @@ function downloadBlob(blob, filename) {
 }
 
 function validateEntry(entry) {
-  if (!entry.entryDate) return "Please choose a date.";
-  if (!entry.energy) return "Please select an energy rating.";
-  return "";
+  const fieldErrors = {};
+  if (!entry.entryDate) fieldErrors.entryDate = "Please choose a date.";
+  if (!entry.energy) fieldErrors.energy = "Please select an energy rating.";
+
+  validateIntegerRange(entry.sleepQuality, "Sleep quality", 1, 5, fieldErrors, "sleepQuality");
+  validateIntegerRange(entry.exerciseLevel, "Exercise level", 0, 5, fieldErrors, "exerciseLevel");
+  validateIntegerRange(entry.socialConnection, "Social connection", 0, 5, fieldErrors, "socialConnection");
+  validateIntegerRange(entry.intentionality, "Intentionality", 1, 5, fieldErrors, "intentionality");
+  validateIntegerRange(entry.stressLevel, "Stress level", 0, 5, fieldErrors, "stressLevel");
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return {
+      formMessage: "Please fix the highlighted fields before saving.",
+      fieldErrors
+    };
+  }
+
+  return { formMessage: "", fieldErrors: {} };
+}
+
+function parseOptionalIntegerField(input) {
+  const rawValue = input?.value?.trim() ?? "";
+  if (rawValue === "") return null;
+  const parsed = Number(rawValue);
+  if (!Number.isInteger(parsed)) return Number.NaN;
+  return parsed;
+}
+
+function validateIntegerRange(value, label, min, max, fieldErrors, fieldKey) {
+  if (value === null) return;
+  if (!Number.isInteger(value) || value < min || value > max) {
+    fieldErrors[fieldKey] = `${label} must be an integer from ${min} to ${max}.`;
+  }
+}
+
+function parseHourMinutePair(hoursInput, minutesInput, label, { minHours = 0, maxHours = 24 } = {}) {
+  const hours = parseOptionalIntegerField(hoursInput);
+  const minutes = parseOptionalIntegerField(minutesInput);
+
+  if (hours === null && minutes === null) {
+    return { value: null, error: "" };
+  }
+
+  if (hours === null || minutes === null) {
+    return { value: null, error: `${label} requires both hours and minutes or both blank.` };
+  }
+
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+    return { value: null, error: `${label} hours and minutes must be whole numbers.` };
+  }
+
+  if (hours < minHours || hours > maxHours || minutes < 0 || minutes > 59) {
+    return { value: null, error: `${label} must use hours ${minHours}–${maxHours} and minutes 0–59.` };
+  }
+
+  const encodedValue = Number(((hours * 60 + minutes) / 60).toFixed(4));
+  return { value: encodedValue, error: "" };
+}
+
+function clearInlineValidation(form) {
+  form.querySelectorAll(".inline-field-error").forEach(node => node.remove());
+  form.querySelectorAll("[aria-invalid='true']").forEach(node => node.setAttribute("aria-invalid", "false"));
+}
+
+function renderInlineValidation(form, fieldErrors) {
+  Object.entries(fieldErrors).forEach(([fieldId, message]) => {
+    const input = document.getElementById(fieldId);
+    if (!input || !message) return;
+    input.setAttribute("aria-invalid", "true");
+
+    const errorEl = document.createElement("p");
+    errorEl.className = "small inline-feedback error inline-field-error";
+    errorEl.textContent = message;
+
+    const container = input.closest(".field") || input.parentElement;
+    if (container) {
+      container.appendChild(errorEl);
+    }
+  });
 }
 
 function appendTranscriptToField(fieldId, transcript) {
@@ -124,6 +200,7 @@ export function createUiHandlers(elements) {
   }
 
   function resetForm({ preserveFeedback = false } = {}) {
+    clearInlineValidation(elements.form);
     elements.form.reset();
     elements.entryDate.value = todayAsLocalDateString();
     clearSelectedEnergy();
@@ -239,7 +316,15 @@ export function createUiHandlers(elements) {
 
     elements.form.addEventListener("submit", async event => {
       event.preventDefault();
+      clearInlineValidation(elements.form);
       const timestamp = nowIso();
+      const sleepHoursInput = document.getElementById("sleepHoursHours");
+      const sleepMinutesInput = document.getElementById("sleepHoursMinutes");
+      const focusHoursInput = document.getElementById("focusWorkHoursHours");
+      const focusMinutesInput = document.getElementById("focusWorkHoursMinutes");
+      const sleepHours = parseHourMinutePair(sleepHoursInput, sleepMinutesInput, "Sleep hours");
+      const focusWorkHours = parseHourMinutePair(focusHoursInput, focusMinutesInput, "Focused work hours");
+
       const schemaFieldValues = Object.fromEntries(
         QUESTION_SCHEMA.map(question => {
           const input = elements.questionInputs[question.id];
@@ -257,12 +342,23 @@ export function createUiHandlers(elements) {
         createdAt: timestamp,
         lastModified: timestamp,
         energy: getSelectedEnergy(),
+        sleepHours: sleepHours.value,
+        sleepQuality: parseOptionalIntegerField(document.getElementById("sleepQuality")),
+        exerciseLevel: parseOptionalIntegerField(document.getElementById("exerciseLevel")),
+        socialConnection: parseOptionalIntegerField(document.getElementById("socialConnection")),
+        focusWorkHours: focusWorkHours.value,
+        intentionality: parseOptionalIntegerField(document.getElementById("intentionality")),
+        stressLevel: parseOptionalIntegerField(document.getElementById("stressLevel")),
         ...schemaFieldValues
       });
 
-      const validationMessage = validateEntry(entry);
-      if (validationMessage) {
-        actions.setFormMessage(validationMessage, "error");
+      const { formMessage, fieldErrors } = validateEntry(entry);
+      if (sleepHours.error) fieldErrors.sleepHoursHours = sleepHours.error;
+      if (focusWorkHours.error) fieldErrors.focusWorkHoursHours = focusWorkHours.error;
+
+      if (Object.keys(fieldErrors).length > 0) {
+        renderInlineValidation(elements.form, fieldErrors);
+        actions.setFormMessage(formMessage || "Please fix the highlighted fields before saving.", "error");
         return;
       }
 
