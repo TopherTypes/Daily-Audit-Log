@@ -2,21 +2,31 @@ import { todayAsLocalDateString, nowIso } from "../utils/date.js";
 import { generateId } from "../services/storage.js";
 
 export function normaliseEntry(entry) {
-  const createdAt = entry.createdAt || nowIso();
-  const lastModified = entry.lastModified || createdAt;
+  // Start from the raw source entry so unknown keys survive hydration/merge cycles.
+  const sourceEntry = entry || {};
+  const createdAt = sourceEntry.createdAt || nowIso();
+  const lastModified = sourceEntry.lastModified || createdAt;
 
   return {
-    id: String(entry.id || generateId()),
-    entryDate: String(entry.entryDate || todayAsLocalDateString()),
+    ...sourceEntry,
+    id: String(sourceEntry.id || generateId()),
+    entryDate: String(sourceEntry.entryDate || todayAsLocalDateString()),
     createdAt: String(createdAt),
     lastModified: String(lastModified),
-    feeling: String(entry.feeling ?? ""),
-    energy: String(entry.energy ?? ""),
-    mattered: String(entry.mattered ?? ""),
-    offCourse: String(entry.offCourse ?? ""),
-    supported: String(entry.supported ?? ""),
-    remember: String(entry.remember ?? ""),
-    needNext: String(entry.needNext ?? "")
+    feeling: String(sourceEntry.feeling ?? ""),
+    energy: String(sourceEntry.energy ?? ""),
+    mattered: String(sourceEntry.mattered ?? ""),
+    offCourse: String(sourceEntry.offCourse ?? ""),
+    supported: String(sourceEntry.supported ?? ""),
+    remember: String(sourceEntry.remember ?? ""),
+    needNext: String(sourceEntry.needNext ?? ""),
+    sleepHours: sourceEntry.sleepHours ?? null,
+    sleepQuality: sourceEntry.sleepQuality ?? null,
+    exerciseLevel: sourceEntry.exerciseLevel ?? null,
+    socialConnection: sourceEntry.socialConnection ?? null,
+    focusWorkHours: sourceEntry.focusWorkHours ?? null,
+    intentionality: sourceEntry.intentionality ?? null,
+    stressLevel: sourceEntry.stressLevel ?? null
   };
 }
 
