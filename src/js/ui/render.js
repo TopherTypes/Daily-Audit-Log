@@ -34,13 +34,56 @@ export function renderAuditQuestionFields(questionFieldsEl) {
 }
 
 export function entryToCardHtml(entry) {
+  const hasMetricValue = value => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === "number") return Number.isFinite(value);
+    return String(value).trim() !== "";
+  };
+
+  const formatHoursMetric = value => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return "";
+
+    const totalMinutes = Math.round(numericValue * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (minutes === 0) return `${hours}h`;
+    if (hours === 0) return `${minutes}m`;
+    return `${hours}h ${minutes}m`;
+  };
+
+  const metricDefinitions = [
+    { key: "sleepHours", label: "Sleep", format: formatHoursMetric },
+    { key: "sleepQuality", label: "Sleep quality" },
+    { key: "exerciseLevel", label: "Exercise" },
+    { key: "socialConnection", label: "Social" },
+    { key: "focusWorkHours", label: "Focus", format: formatHoursMetric },
+    { key: "intentionality", label: "Intentionality" },
+    { key: "stressLevel", label: "Stress" }
+  ];
+
+  const metricPills = metricDefinitions
+    .filter(metric => hasMetricValue(entry[metric.key]))
+    .map(metric => {
+      const rawValue = metric.format ? metric.format(entry[metric.key]) : String(entry[metric.key]).trim();
+      if (!rawValue) return "";
+      return `<span class="pill metric-pill"><strong>${escapeHtml(metric.label)}:</strong>&nbsp;${escapeHtml(rawValue)}</span>`;
+    })
+    .filter(Boolean)
+    .join("");
+
+  const metricsBlock = metricPills
+    ? `<div class="entry-metrics"><div class="small">Daily metrics</div><div class="entry-metric-pills">${metricPills}</div></div>`
+    : "";
+
   const visibleFields = QUESTION_SCHEMA
     .map(question => [question.label, entry[question.id]])
     .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "")
     .map(([label, value]) => `<div class="entry-field"><strong>${escapeHtml(label)}</strong><p>${escapeHtml(value)}</p></div>`)
     .join("");
 
-  return `<article class="entry-card"><div class="entry-top"><div><div class="entry-date">${escapeHtml(formatDisplayDate(entry.entryDate))}</div><div class="small">Updated ${escapeHtml(formatDisplayTimestamp(entry.lastModified || entry.createdAt))}</div></div><span class="pill">Energy ${escapeHtml(entry.energy)}</span></div><div class="entry-fields">${visibleFields || '<div class="small">This entry is mostly empty, which is still a valid life form.</div>'}</div></article>`;
+  return `<article class="entry-card"><div class="entry-top"><div><div class="entry-date">${escapeHtml(formatDisplayDate(entry.entryDate))}</div><div class="small">Updated ${escapeHtml(formatDisplayTimestamp(entry.lastModified || entry.createdAt))}</div></div><span class="pill">Energy ${escapeHtml(entry.energy)}</span></div>${metricsBlock}<div class="entry-fields">${visibleFields || '<div class="small">This entry is mostly empty, which is still a valid life form.</div>'}</div></article>`;
 }
 
 function renderEntriesList(entriesListEl, entries) {
