@@ -1,5 +1,5 @@
 import { todayAsLocalDateString, nowIso, formatYMD, parseYMDToDate } from "../utils/date.js";
-import { entriesToCsv } from "../utils/csv.js";
+import { CSV_STABLE_HEADERS, entriesToCsv, parseCsv } from "../utils/csv.js";
 import { readEntries, readSyncSettings, generateId, saveEntries } from "../services/storage.js";
 import { hasSyncConfigured } from "../services/sync.js";
 import { actions, getState, normaliseEntry, sortEntriesNewestFirst, subscribe } from "../state/store.js";
@@ -7,6 +7,19 @@ import { QUESTION_SCHEMA } from "../config/questions.js";
 import { THEME_PREFERENCE_KEY } from "../config.js";
 import { clearLocalData, finishSyncPhase, hydrateFromStorage, performMergedSync, persistSyncSecret, setSyncError } from "../services/workflows.js";
 import { renderEntries, renderFormState, renderReflectionResult, renderReview, renderSyncStatus } from "./render.js";
+
+const INTEGER_IMPORT_RANGES = {
+  sleepQuality: { label: "Sleep quality", min: 1, max: 5 },
+  exerciseLevel: { label: "Exercise level", min: 0, max: 5 },
+  socialConnection: { label: "Social connection", min: 0, max: 5 },
+  intentionality: { label: "Intentionality", min: 1, max: 5 },
+  stressLevel: { label: "Stress level", min: 0, max: 5 }
+};
+
+const DECIMAL_IMPORT_RANGES = {
+  sleepHours: { label: "Sleep hours", min: 0, max: 24 },
+  focusWorkHours: { label: "Focus work hours", min: 0, max: 24 }
+};
 
 function getSelectedEnergy() {
   const checked = document.querySelector('input[name="energy"]:checked');
@@ -47,6 +60,77 @@ function validateEntry(entry) {
   }
 
   return { formMessage: "", fieldErrors: {} };
+}
+
+function parseOptionalCsvNumber(rawValue) {
+  if (rawValue === undefined || rawValue === null) return null;
+  const trimmed = String(rawValue).trim();
+  if (trimmed === "") return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function parseOptionalCsvInteger(rawValue) {
+  const parsed = parseOptionalCsvNumber(rawValue);
+  if (parsed === null) return null;
+  if (!Number.isInteger(parsed)) return Number.NaN;
+  return parsed;
+}
+
+function validateDecimalRange(value, label, min, max, fieldErrors, fieldKey) {
+  if (value === null) return;
+  if (!Number.isFinite(value) || value < min || value > max) {
+    fieldErrors[fieldKey] = `${label} must be a number from ${min} to ${max}.`;
+  }
+}
+
+function parseCsvImportEntries(csvText) {
+  const rows = parseCsv(csvText);
+  if (rows.length < 2) throw new Error("CSV file has no data rows.");
+
+  const headers = rows[0].map(header => header.trim());
+  if (headers.length === 0) throw new Error("CSV file is missing headers.");
+
+  const requiredHeaders = CSV_STABLE_HEADERS.slice(0, 5);
+  const missingRequired = requiredHeaders.filter(header => !headers.includes(header));
+  if (missingRequired.length > 0) {
+    throw new Error(`CSV is missing required headers: ${missingRequired.join(", ")}.`);
+  }
+
+  const importedEntries = [];
+
+  rows.slice(1).forEach((values, rowIndex) => {
+    const rowNumber = rowIndex + 2;
+    const rawEntry = {};
+
+    headers.forEach((header, columnIndex) => {
+      const value = values[columnIndex] ?? "";
+      rawEntry[header] = value === "" ? null : value;
+    });
+
+    const fieldErrors = {};
+
+    Object.entries(INTEGER_IMPORT_RANGES).forEach(([fieldKey, range]) => {
+      const parsed = parseOptionalCsvInteger(rawEntry[fieldKey]);
+      rawEntry[fieldKey] = parsed;
+      validateIntegerRange(parsed, range.label, range.min, range.max, fieldErrors, fieldKey);
+    });
+
+    Object.entries(DECIMAL_IMPORT_RANGES).forEach(([fieldKey, range]) => {
+      const parsed = parseOptionalCsvNumber(rawEntry[fieldKey]);
+      rawEntry[fieldKey] = parsed;
+      validateDecimalRange(parsed, range.label, range.min, range.max, fieldErrors, fieldKey);
+    });
+
+    if (Object.keys(fieldErrors).length > 0) {
+      const firstError = Object.values(fieldErrors)[0];
+      throw new Error(`Row ${rowNumber}: ${firstError}`);
+    }
+
+    importedEntries.push(normaliseEntry(rawEntry));
+  });
+
+  return importedEntries;
 }
 
 function parseOptionalIntegerField(input) {
@@ -425,6 +509,28 @@ export function createUiHandlers(elements) {
           actions.setDataMessage("Import failed. That JSON appears to be malformed or in the wrong shape.");
         } finally {
           elements.importJsonInput.value = "";
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    elements.importCsvTrigger.addEventListener("click", () => elements.importCsvInput.click());
+    elements.importCsvInput.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = parseCsvImportEntries(String(reader.result ?? ""));
+          const sortedEntries = sortEntriesNewestFirst(imported);
+          saveEntries(sortedEntries);
+          actions.setEntries(sortedEntries);
+          actions.setDataMessage(`Imported ${imported.length} entries from CSV.`);
+        } catch (error) {
+          actions.setDataMessage(`CSV import failed: ${error.message}`);
+        } finally {
+          elements.importCsvInput.value = "";
         }
       };
       reader.readAsText(file);

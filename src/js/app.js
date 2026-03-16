@@ -26,6 +26,8 @@ function collectElements() {
     exportCsvBtn: document.getElementById("exportCsvBtn"),
     importJsonTrigger: document.getElementById("importJsonTrigger"),
     importJsonInput: document.getElementById("importJsonInput"),
+    importCsvTrigger: document.getElementById("importCsvTrigger"),
+    importCsvInput: document.getElementById("importCsvInput"),
     clearDataBtn: document.getElementById("clearDataBtn"),
     resetFormBtn: document.getElementById("resetFormBtn"),
     recentFilter: document.getElementById("recentFilter"),
