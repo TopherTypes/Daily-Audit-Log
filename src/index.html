@@ -77,6 +77,59 @@
             <p id="energyHelp" class="small">Pick the one that best describes your current energy.</p>
           </fieldset>
 
+          <fieldset class="field">
+            <legend>Daily Metrics</legend>
+            <div class="stack">
+              <div class="field">
+                <label for="sleepHoursHours">Sleep hours</label>
+                <div class="stack">
+                  <input type="number" id="sleepHoursHours" min="0" max="24" step="1" placeholder="Hours" />
+                  <input type="number" id="sleepHoursMinutes" min="0" max="59" step="1" placeholder="Minutes" />
+                </div>
+                <p class="small">Hours: 0–24, Minutes: 0–59.</p>
+              </div>
+
+              <div class="field">
+                <label for="focusWorkHoursHours">Focused work hours</label>
+                <div class="stack">
+                  <input type="number" id="focusWorkHoursHours" min="0" max="24" step="1" placeholder="Hours" />
+                  <input type="number" id="focusWorkHoursMinutes" min="0" max="59" step="1" placeholder="Minutes" />
+                </div>
+                <p class="small">Hours: 0–24, Minutes: 0–59.</p>
+              </div>
+
+              <div class="field">
+                <label for="sleepQuality">Sleep quality</label>
+                <input type="number" id="sleepQuality" min="1" max="5" step="1" />
+                <p class="small">Range: 1–5.</p>
+              </div>
+
+              <div class="field">
+                <label for="exerciseLevel">Exercise level</label>
+                <input type="number" id="exerciseLevel" min="0" max="5" step="1" />
+                <p class="small">Range: 0–5.</p>
+              </div>
+
+              <div class="field">
+                <label for="socialConnection">Social connection</label>
+                <input type="number" id="socialConnection" min="0" max="5" step="1" />
+                <p class="small">Range: 0–5.</p>
+              </div>
+
+              <div class="field">
+                <label for="intentionality">Intentionality</label>
+                <input type="number" id="intentionality" min="1" max="5" step="1" />
+                <p class="small">Range: 1–5.</p>
+              </div>
+
+              <div class="field">
+                <label for="stressLevel">Stress level</label>
+                <input type="number" id="stressLevel" min="0" max="5" step="1" />
+                <p class="small">Range: 0–5.</p>
+              </div>
+            </div>
+          </fieldset>
+
           <div id="questionFields" class="stack"></div>
 
           <div class="field-help">Tap a Voice button once to arm voice input for that field. Tap Stop to end dictation.</div>
