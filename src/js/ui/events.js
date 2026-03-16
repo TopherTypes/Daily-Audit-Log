@@ -26,8 +26,21 @@ function getSelectedEnergy() {
   return checked ? checked.value : "";
 }
 
+function getSelectedIntegerOption(fieldName) {
+  const checked = document.querySelector(`input[name="${fieldName}"]:checked`);
+  if (!checked) return null;
+  const parsed = Number(checked.value);
+  return Number.isInteger(parsed) ? parsed : Number.NaN;
+}
+
 function clearSelectedEnergy() {
   document.querySelectorAll('input[name="energy"]').forEach(radio => { radio.checked = false; });
+}
+
+function clearSelectedIntegerOptions(fieldNames) {
+  fieldNames.forEach(fieldName => {
+    document.querySelectorAll(`input[name="${fieldName}"]`).forEach(radio => { radio.checked = false; });
+  });
 }
 
 function downloadBlob(blob, filename) {
@@ -180,14 +193,18 @@ function clearInlineValidation(form) {
 function renderInlineValidation(form, fieldErrors) {
   Object.entries(fieldErrors).forEach(([fieldId, message]) => {
     const input = document.getElementById(fieldId);
-    if (!input || !message) return;
-    input.setAttribute("aria-invalid", "true");
+    const radioInputs = Array.from(document.querySelectorAll(`input[name="${fieldId}"]`));
+    if ((!input && radioInputs.length === 0) || !message) return;
+
+    if (input) input.setAttribute("aria-invalid", "true");
+    radioInputs.forEach(radio => radio.setAttribute("aria-invalid", "true"));
 
     const errorEl = document.createElement("p");
     errorEl.className = "small inline-feedback error inline-field-error";
     errorEl.textContent = message;
 
-    const container = input.closest(".field") || input.parentElement;
+    const target = input || radioInputs[0];
+    const container = target.closest(".field") || target.parentElement;
     if (container) {
       container.appendChild(errorEl);
     }
@@ -288,6 +305,7 @@ export function createUiHandlers(elements) {
     elements.form.reset();
     elements.entryDate.value = todayAsLocalDateString();
     clearSelectedEnergy();
+    clearSelectedIntegerOptions(["sleepQuality", "exerciseLevel", "socialConnection", "intentionality", "stressLevel"]);
     if (!preserveFeedback) actions.setFormMessage("");
     speechController.disarmSpeech(false);
   }
@@ -427,12 +445,12 @@ export function createUiHandlers(elements) {
         lastModified: timestamp,
         energy: getSelectedEnergy(),
         sleepHours: sleepHours.value,
-        sleepQuality: parseOptionalIntegerField(document.getElementById("sleepQuality")),
-        exerciseLevel: parseOptionalIntegerField(document.getElementById("exerciseLevel")),
-        socialConnection: parseOptionalIntegerField(document.getElementById("socialConnection")),
+        sleepQuality: getSelectedIntegerOption("sleepQuality"),
+        exerciseLevel: getSelectedIntegerOption("exerciseLevel"),
+        socialConnection: getSelectedIntegerOption("socialConnection"),
         focusWorkHours: focusWorkHours.value,
-        intentionality: parseOptionalIntegerField(document.getElementById("intentionality")),
-        stressLevel: parseOptionalIntegerField(document.getElementById("stressLevel")),
+        intentionality: getSelectedIntegerOption("intentionality"),
+        stressLevel: getSelectedIntegerOption("stressLevel"),
         ...schemaFieldValues
       });
 

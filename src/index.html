@@ -98,35 +98,68 @@
                 <p class="small">Hours: 0–24, Minutes: 0–59.</p>
               </div>
 
-              <div class="field">
-                <label for="sleepQuality">Sleep quality</label>
-                <input type="number" id="sleepQuality" min="1" max="5" step="1" />
-                <p class="small">Range: 1–5.</p>
-              </div>
+              <fieldset class="field energy-fieldset">
+                <legend>Sleep quality</legend>
+                <div class="energy-group" role="radiogroup" aria-describedby="sleepQualityHelp">
+                  <div class="energy-option"><input type="radio" id="sleepQuality1" name="sleepQuality" value="1" /><label for="sleepQuality1">1</label></div>
+                  <div class="energy-option"><input type="radio" id="sleepQuality2" name="sleepQuality" value="2" /><label for="sleepQuality2">2</label></div>
+                  <div class="energy-option"><input type="radio" id="sleepQuality3" name="sleepQuality" value="3" /><label for="sleepQuality3">3</label></div>
+                  <div class="energy-option"><input type="radio" id="sleepQuality4" name="sleepQuality" value="4" /><label for="sleepQuality4">4</label></div>
+                  <div class="energy-option"><input type="radio" id="sleepQuality5" name="sleepQuality" value="5" /><label for="sleepQuality5">5</label></div>
+                </div>
+                <p id="sleepQualityHelp" class="small">Range: 1–5.</p>
+              </fieldset>
 
-              <div class="field">
-                <label for="exerciseLevel">Exercise level</label>
-                <input type="number" id="exerciseLevel" min="0" max="5" step="1" />
-                <p class="small">Range: 0–5.</p>
-              </div>
+              <fieldset class="field energy-fieldset">
+                <legend>Exercise level</legend>
+                <div class="energy-group" role="radiogroup" aria-describedby="exerciseLevelHelp">
+                  <div class="energy-option"><input type="radio" id="exerciseLevel0" name="exerciseLevel" value="0" /><label for="exerciseLevel0">0</label></div>
+                  <div class="energy-option"><input type="radio" id="exerciseLevel1" name="exerciseLevel" value="1" /><label for="exerciseLevel1">1</label></div>
+                  <div class="energy-option"><input type="radio" id="exerciseLevel2" name="exerciseLevel" value="2" /><label for="exerciseLevel2">2</label></div>
+                  <div class="energy-option"><input type="radio" id="exerciseLevel3" name="exerciseLevel" value="3" /><label for="exerciseLevel3">3</label></div>
+                  <div class="energy-option"><input type="radio" id="exerciseLevel4" name="exerciseLevel" value="4" /><label for="exerciseLevel4">4</label></div>
+                  <div class="energy-option"><input type="radio" id="exerciseLevel5" name="exerciseLevel" value="5" /><label for="exerciseLevel5">5</label></div>
+                </div>
+                <p id="exerciseLevelHelp" class="small">Range: 0–5.</p>
+              </fieldset>
 
-              <div class="field">
-                <label for="socialConnection">Social connection</label>
-                <input type="number" id="socialConnection" min="0" max="5" step="1" />
-                <p class="small">Range: 0–5.</p>
-              </div>
+              <fieldset class="field energy-fieldset">
+                <legend>Social connection</legend>
+                <div class="energy-group" role="radiogroup" aria-describedby="socialConnectionHelp">
+                  <div class="energy-option"><input type="radio" id="socialConnection0" name="socialConnection" value="0" /><label for="socialConnection0">0</label></div>
+                  <div class="energy-option"><input type="radio" id="socialConnection1" name="socialConnection" value="1" /><label for="socialConnection1">1</label></div>
+                  <div class="energy-option"><input type="radio" id="socialConnection2" name="socialConnection" value="2" /><label for="socialConnection2">2</label></div>
+                  <div class="energy-option"><input type="radio" id="socialConnection3" name="socialConnection" value="3" /><label for="socialConnection3">3</label></div>
+                  <div class="energy-option"><input type="radio" id="socialConnection4" name="socialConnection" value="4" /><label for="socialConnection4">4</label></div>
+                  <div class="energy-option"><input type="radio" id="socialConnection5" name="socialConnection" value="5" /><label for="socialConnection5">5</label></div>
+                </div>
+                <p id="socialConnectionHelp" class="small">Range: 0–5.</p>
+              </fieldset>
 
-              <div class="field">
-                <label for="intentionality">Intentionality</label>
-                <input type="number" id="intentionality" min="1" max="5" step="1" />
-                <p class="small">Range: 1–5.</p>
-              </div>
+              <fieldset class="field energy-fieldset">
+                <legend>Intentionality</legend>
+                <div class="energy-group" role="radiogroup" aria-describedby="intentionalityHelp">
+                  <div class="energy-option"><input type="radio" id="intentionality1" name="intentionality" value="1" /><label for="intentionality1">1</label></div>
+                  <div class="energy-option"><input type="radio" id="intentionality2" name="intentionality" value="2" /><label for="intentionality2">2</label></div>
+                  <div class="energy-option"><input type="radio" id="intentionality3" name="intentionality" value="3" /><label for="intentionality3">3</label></div>
+                  <div class="energy-option"><input type="radio" id="intentionality4" name="intentionality" value="4" /><label for="intentionality4">4</label></div>
+                  <div class="energy-option"><input type="radio" id="intentionality5" name="intentionality" value="5" /><label for="intentionality5">5</label></div>
+                </div>
+                <p id="intentionalityHelp" class="small">Range: 1–5.</p>
+              </fieldset>
 
-              <div class="field">
-                <label for="stressLevel">Stress level</label>
-                <input type="number" id="stressLevel" min="0" max="5" step="1" />
-                <p class="small">Range: 0–5.</p>
-              </div>
+              <fieldset class="field energy-fieldset">
+                <legend>Stress level</legend>
+                <div class="energy-group" role="radiogroup" aria-describedby="stressLevelHelp">
+                  <div class="energy-option"><input type="radio" id="stressLevel0" name="stressLevel" value="0" /><label for="stressLevel0">0</label></div>
+                  <div class="energy-option"><input type="radio" id="stressLevel1" name="stressLevel" value="1" /><label for="stressLevel1">1</label></div>
+                  <div class="energy-option"><input type="radio" id="stressLevel2" name="stressLevel" value="2" /><label for="stressLevel2">2</label></div>
+                  <div class="energy-option"><input type="radio" id="stressLevel3" name="stressLevel" value="3" /><label for="stressLevel3">3</label></div>
+                  <div class="energy-option"><input type="radio" id="stressLevel4" name="stressLevel" value="4" /><label for="stressLevel4">4</label></div>
+                  <div class="energy-option"><input type="radio" id="stressLevel5" name="stressLevel" value="5" /><label for="stressLevel5">5</label></div>
+                </div>
+                <p id="stressLevelHelp" class="small">Range: 0–5.</p>
+              </fieldset>
             </div>
           </fieldset>
 
