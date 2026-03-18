@@ -409,7 +409,8 @@ export function createUiHandlers(elements) {
         const merged = await performMergedSync();
         actions.setSyncSettingsMessage(`Pulled and merged ${merged.length} entries.`);
       } catch (error) {
-        setSyncError(error.message);
+        // Surface in the settings panel only; do not overwrite lastSyncStatus
+        // for a manually-triggered pull since that metadata tracks auto-syncs.
         actions.setSyncSettingsMessage(error.message);
       } finally {
         finishSyncPhase();
@@ -520,8 +521,9 @@ export function createUiHandlers(elements) {
           const parsed = JSON.parse(reader.result);
           if (!Array.isArray(parsed)) throw new Error("Imported JSON is not an array.");
           const cleaned = parsed.filter(item => item && typeof item === "object").map(normaliseEntry);
-          saveEntries(sortEntriesNewestFirst(cleaned));
-          actions.setEntries(cleaned);
+          const sorted = sortEntriesNewestFirst(cleaned);
+          saveEntries(sorted);
+          actions.setEntries(sorted);
           actions.setDataMessage(`Imported ${cleaned.length} entries from JSON.`);
         } catch {
           actions.setDataMessage("Import failed. That JSON appears to be malformed or in the wrong shape.");

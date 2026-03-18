@@ -30,3 +30,20 @@ test('parseCsv handles quoted fields and trims values', () => {
   assert.equal(rows[1][1], '2026-03-02');
   assert.equal(rows[1][2], '"High"');
 });
+
+import { csvEscape } from '../src/js/utils/csv.js';
+
+test('csvEscape preserves embedded newlines inside the quoted field', () => {
+  const result = csvEscape('line one\nline two');
+  assert.equal(result, '"line one\nline two"');
+});
+
+test('csvEscape escapes double-quotes by doubling them', () => {
+  const result = csvEscape('say "hello"');
+  assert.equal(result, '"say ""hello"""');
+});
+
+test('csvEscape treats null/undefined as empty string', () => {
+  assert.equal(csvEscape(null), '""');
+  assert.equal(csvEscape(undefined), '""');
+});

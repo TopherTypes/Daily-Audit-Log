@@ -53,4 +53,6 @@ export function saveSyncMeta(meta) {
 export function clearAllData() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SYNC_META_KEY);
+  // Sync settings (i.e. the user's sync secret) are intentionally preserved so
+  // the user does not need to re-enter them after clearing their journal entries.
 }

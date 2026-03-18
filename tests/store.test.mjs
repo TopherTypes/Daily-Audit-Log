@@ -40,6 +40,31 @@ test('filterEntries supports custom date windows', () => {
   assert.deepEqual(filtered.map(entry => entry.id), ['b']);
 });
 
+test('filterEntries with custom range returns empty array when start is after end', () => {
+  const entries = [
+    { id: 'a', entryDate: '2026-01-05' },
+    { id: 'b', entryDate: '2026-01-10' }
+  ];
+
+  const filtered = filterEntries(entries, {
+    recent: 'custom',
+    customStartDate: '2026-01-10',
+    customEndDate: '2026-01-05'
+  });
+
+  assert.deepEqual(filtered, []);
+});
+
+test('mergeEntries keeps cloud entry when timestamps are equal', () => {
+  const timestamp = '2026-01-01T10:00:00.000Z';
+  const local = [{ id: '1', entryDate: '2026-01-01', lastModified: timestamp, energy: 'local' }];
+  const cloud = [{ id: '1', entryDate: '2026-01-01', lastModified: timestamp, energy: 'cloud' }];
+
+  const merged = mergeEntries(local, cloud);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].energy, 'cloud');
+});
+
 test('normaliseEntry preserves unknown keys and backfills new metrics to null', () => {
   const normalised = normaliseEntry({
     id: 'x',
