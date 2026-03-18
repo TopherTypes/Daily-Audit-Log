@@ -16,7 +16,8 @@ export const CSV_STABLE_HEADERS = [
 ];
 
 export function csvEscape(value) {
-  const stringValue = String(value).replace(/\r?\n/g, " ").trim();
+  // Normalise CRLF to LF; newlines inside quoted fields are valid RFC 4180 CSV.
+  const stringValue = String(value ?? "").replace(/\r\n/g, "\n");
   return `"${stringValue.replace(/"/g, '""')}"`;
 }
 
