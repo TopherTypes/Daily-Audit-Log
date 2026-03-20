@@ -233,28 +233,10 @@ function appendTranscriptToField(fieldId, transcript) {
   field.focus();
 }
 
-export function filterEntries(entries, filters) {
-  const filterValue = filters.recent || "7";
-  const now = new Date();
-  now.setHours(23, 59, 59, 999);
-
-  if (filterValue === "custom") {
-    if (!filters.customStartDate || !filters.customEndDate) return [];
-    const start = parseYMDToDate(filters.customStartDate);
-    const end = parseYMDToDate(filters.customEndDate);
-    if (start.getTime() > end.getTime()) return [];
-    return entries.filter(entry => {
-      const entryTime = parseYMDToDate(entry.entryDate).getTime();
-      return entryTime >= start.getTime() && entryTime <= end.getTime();
-    });
-  }
-
-  const days = Number(filterValue);
-  const cutoff = new Date(now);
-  cutoff.setDate(cutoff.getDate() - (days - 1));
-  cutoff.setHours(0, 0, 0, 0);
-  return entries.filter(entry => parseYMDToDate(entry.entryDate).getTime() >= cutoff.getTime());
+export function filterEntries(entries) {
+  return entries;
 }
+
 
 export function createUiHandlers(elements) {
   let speechController = { disarmSpeech: () => {} };
@@ -344,12 +326,6 @@ export function createUiHandlers(elements) {
     renderReflectionResult(elements.reviewResult, kind, targetDateString, best);
   }
 
-  function updateCustomDateVisibility() {
-    const showCustom = elements.recentFilter?.value === "custom";
-    elements.customDateFilters?.classList.toggle("hidden", !showCustom);
-    if (elements.customDateFilters) elements.customDateFilters.setAttribute("aria-hidden", String(!showCustom));
-  }
-
   function setActiveTab(tabId) {
     elements.tabButtons.forEach(button => {
       button.classList.toggle("active", button.dataset.tab === tabId);
@@ -403,13 +379,14 @@ export function createUiHandlers(elements) {
     syncAccordionMode();
     window.addEventListener("resize", syncAccordionMode);
 
-    elements.recentFilter?.addEventListener("change", () => {
-      updateCustomDateVisibility();
-      actions.setFilters({ recent: elements.recentFilter.value });
+    elements.reviewCalendar?.addEventListener("click", event => {
+      const navButton = event.target.closest("[data-calendar-nav]");
+      if (!navButton) return;
+
+      const direction = navButton.dataset.calendarNav === "previous" ? -1 : 1;
+      const currentOffset = Number(getState().filters.calendarMonthOffset ?? 0);
+      actions.setFilters({ calendarMonthOffset: currentOffset + direction });
     });
-    elements.customStartDate?.addEventListener("change", () => actions.setFilters({ customStartDate: elements.customStartDate.value }));
-    elements.customEndDate?.addEventListener("change", () => actions.setFilters({ customEndDate: elements.customEndDate.value }));
-    updateCustomDateVisibility();
 
     elements.saveSyncSettingsBtn.addEventListener("click", () => {
       persistSyncSecret(elements.syncSecretInput.value.trim());

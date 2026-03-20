@@ -24,35 +24,16 @@ test('sortEntriesNewestFirst sorts by entryDate then lastModified', () => {
   assert.deepEqual(sorted.map(entry => entry.id), ['b', 'c', 'a']);
 });
 
-test('filterEntries supports custom date windows', () => {
+test('filterEntries now returns all entries for the review list', () => {
   const entries = [
     { id: 'a', entryDate: '2026-01-01' },
     { id: 'b', entryDate: '2026-01-08' },
     { id: 'c', entryDate: '2026-01-09' }
   ];
 
-  const filtered = filterEntries(entries, {
-    recent: 'custom',
-    customStartDate: '2026-01-02',
-    customEndDate: '2026-01-08'
-  });
+  const filtered = filterEntries(entries, { calendarMonthOffset: 2 });
 
-  assert.deepEqual(filtered.map(entry => entry.id), ['b']);
-});
-
-test('filterEntries with custom range returns empty array when start is after end', () => {
-  const entries = [
-    { id: 'a', entryDate: '2026-01-05' },
-    { id: 'b', entryDate: '2026-01-10' }
-  ];
-
-  const filtered = filterEntries(entries, {
-    recent: 'custom',
-    customStartDate: '2026-01-10',
-    customEndDate: '2026-01-05'
-  });
-
-  assert.deepEqual(filtered, []);
+  assert.deepEqual(filtered.map(entry => entry.id), ['a', 'b', 'c']);
 });
 
 test('mergeEntries keeps cloud entry when timestamps are equal', () => {

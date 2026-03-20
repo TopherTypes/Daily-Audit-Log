@@ -67,7 +67,7 @@ const state = {
   entries: [],
   syncMeta: { lastSyncedAt: "", lastSyncStatus: "never", lastSyncMessage: "" },
   syncSettings: { workerBaseUrl: "", syncKey: "", syncSecret: "" },
-  filters: { recent: "7", customStartDate: "", customEndDate: "" },
+  filters: { calendarMonthOffset: 0 },
   ui: {
     formMessage: { text: "", mode: "" },
     dataMessage: "",
