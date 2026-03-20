@@ -26,7 +26,9 @@ export function normaliseEntry(entry) {
     socialConnection: sourceEntry.socialConnection ?? null,
     focusWorkHours: sourceEntry.focusWorkHours ?? null,
     intentionality: sourceEntry.intentionality ?? null,
-    stressLevel: sourceEntry.stressLevel ?? null
+    stressLevel: sourceEntry.stressLevel ?? null,
+    calorieIntake: sourceEntry.calorieIntake ?? null,
+    weightKg: sourceEntry.weightKg ?? null
   };
 }
 

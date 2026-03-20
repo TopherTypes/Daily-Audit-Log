@@ -1,4 +1,4 @@
-const QUESTION_SCHEMA_REQUIRED_KEYS = ["id", "label", "placeholder", "maxLength", "supportsSpeech", "type"];
+const QUESTION_SCHEMA_REQUIRED_KEYS = ["id", "label", "placeholder", "supportsSpeech", "type"];
 
 export const QUESTION_SCHEMA = [
   {
@@ -48,6 +48,26 @@ export const QUESTION_SCHEMA = [
     maxLength: 2000,
     supportsSpeech: true,
     type: "textarea"
+  },
+  {
+    id: "calorieIntake",
+    label: "Calorie intake",
+    placeholder: "Total calories for the day",
+    supportsSpeech: false,
+    type: "number",
+    min: 0,
+    step: 1,
+    inputMode: "numeric"
+  },
+  {
+    id: "weightKg",
+    label: "Weight (in kg)",
+    placeholder: "Current weight in kilograms",
+    supportsSpeech: false,
+    type: "number",
+    min: 0,
+    step: 0.1,
+    inputMode: "decimal"
   }
 ];
 
@@ -67,11 +87,11 @@ export function validateQuestionSchema(schema = QUESTION_SCHEMA) {
       errors.push(`QUESTION_SCHEMA[${index}] is missing required keys: ${missingKeys.join(", ")}`);
     }
 
-    if (field.type !== "textarea") {
+    if (!["textarea", "number"].includes(field.type)) {
       errors.push(`QUESTION_SCHEMA[${index}] has unsupported type "${field.type}" for id "${field.id}".`);
     }
 
-    if (typeof field.maxLength !== "number" || !Number.isFinite(field.maxLength) || field.maxLength <= 0) {
+    if (field.type === "textarea" && (typeof field.maxLength !== "number" || !Number.isFinite(field.maxLength) || field.maxLength <= 0)) {
       errors.push(`QUESTION_SCHEMA[${index}] has invalid maxLength for id "${field.id}".`);
     }
   });

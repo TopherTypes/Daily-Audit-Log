@@ -12,7 +12,9 @@ export const CSV_STABLE_HEADERS = [
   "socialConnection",
   "focusWorkHours",
   "intentionality",
-  "stressLevel"
+  "stressLevel",
+  "calorieIntake",
+  "weightKg"
 ];
 
 export function csvEscape(value) {
