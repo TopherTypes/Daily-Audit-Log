@@ -18,7 +18,9 @@ const INTEGER_IMPORT_RANGES = {
 
 const DECIMAL_IMPORT_RANGES = {
   sleepHours: { label: "Sleep hours", min: 0, max: 24 },
-  focusWorkHours: { label: "Focus work hours", min: 0, max: 24 }
+  focusWorkHours: { label: "Focus work hours", min: 0, max: 24 },
+  calorieIntake: { label: "Calorie intake", min: 0, max: 20000 },
+  weightKg: { label: "Weight (in kg)", min: 0, max: 1000 }
 };
 
 function getSelectedEnergy() {
@@ -64,6 +66,8 @@ function validateEntry(entry) {
   validateIntegerRange(entry.socialConnection, "Social connection", 0, 5, fieldErrors, "socialConnection");
   validateIntegerRange(entry.intentionality, "Intentionality", 1, 5, fieldErrors, "intentionality");
   validateIntegerRange(entry.stressLevel, "Stress level", 0, 5, fieldErrors, "stressLevel");
+  validateDecimalRange(entry.calorieIntake, "Calorie intake", 0, 20000, fieldErrors, "calorieIntake");
+  validateDecimalRange(entry.weightKg, "Weight (in kg)", 0, 1000, fieldErrors, "weightKg");
 
   if (Object.keys(fieldErrors).length > 0) {
     return {
@@ -152,6 +156,13 @@ function parseOptionalIntegerField(input) {
   const parsed = Number(rawValue);
   if (!Number.isInteger(parsed)) return Number.NaN;
   return parsed;
+}
+
+function parseOptionalNumberField(input) {
+  const rawValue = input?.value?.trim() ?? "";
+  if (rawValue === "") return null;
+  const parsed = Number(rawValue);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
 function validateIntegerRange(value, label, min, max, fieldErrors, fieldKey) {
@@ -428,13 +439,20 @@ export function createUiHandlers(elements) {
       const sleepHours = parseHourMinutePair(sleepHoursInput, sleepMinutesInput, "Sleep hours");
       const focusWorkHours = parseHourMinutePair(focusHoursInput, focusMinutesInput, "Focused work hours");
 
+      // Parse schema-defined inputs by type so new numeric prompts are stored as numbers,
+      // while existing reflective prompts continue to persist as trimmed text.
       const schemaFieldValues = Object.fromEntries(
         QUESTION_SCHEMA.map(question => {
           const input = elements.questionInputs[question.id];
           if (!input) {
             console.error(`Missing input for schema field "${question.id}".`);
-            return [question.id, ""];
+            return [question.id, question.type === "number" ? null : ""];
           }
+
+          if (question.type === "number") {
+            return [question.id, parseOptionalNumberField(input)];
+          }
+
           return [question.id, input.value.trim()];
         })
       );

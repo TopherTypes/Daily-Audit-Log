@@ -83,6 +83,23 @@ test('normaliseEntry preserves unknown keys and backfills new metrics to null', 
   assert.equal(normalised.focusWorkHours, null);
   assert.equal(normalised.intentionality, null);
   assert.equal(normalised.stressLevel, null);
+  assert.equal(normalised.calorieIntake, null);
+  assert.equal(normalised.weightKg, null);
   assert.equal(normalised.createdAt, '2026-02-01T00:00:00.000Z');
   assert.equal(normalised.lastModified, '2026-02-01T10:00:00.000Z');
+});
+
+
+test('normaliseEntry preserves numeric daily audit additions', () => {
+  const normalised = normaliseEntry({
+    id: 'metric-entry',
+    entryDate: '2026-02-02',
+    createdAt: '2026-02-02T00:00:00.000Z',
+    lastModified: '2026-02-02T10:00:00.000Z',
+    calorieIntake: 2200,
+    weightKg: 72.4
+  });
+
+  assert.equal(normalised.calorieIntake, 2200);
+  assert.equal(normalised.weightKg, 72.4);
 });

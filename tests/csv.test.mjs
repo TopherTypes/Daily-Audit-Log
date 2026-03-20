@@ -47,3 +47,9 @@ test('csvEscape treats null/undefined as empty string', () => {
   assert.equal(csvEscape(null), '""');
   assert.equal(csvEscape(undefined), '""');
 });
+
+
+test('CSV stable headers include calorie and weight metrics', () => {
+  assert.equal(CSV_STABLE_HEADERS.includes('calorieIntake'), true);
+  assert.equal(CSV_STABLE_HEADERS.includes('weightKg'), true);
+});

@@ -10,16 +10,24 @@ export function escapeHtml(value) {
 }
 
 function questionToFieldHtml(question) {
-  if (question.type !== "textarea") {
-    console.error(`Unsupported field type \"${question.type}\" for question \"${question.id}\".`);
-    return "";
+  if (question.type === "textarea") {
+    const micButton = question.supportsSpeech
+      ? `<button type="button" class="mic-btn" data-target="${escapeHtml(question.id)}" aria-label="Start voice input for ${escapeHtml(question.label)}" aria-pressed="false"><span aria-hidden="true">🎤</span> <span class="mic-btn-text">Voice</span></button>`
+      : "";
+
+    return `<div class="field"><label for="${escapeHtml(question.id)}">${escapeHtml(question.label)}</label><div class="textarea-with-mic"><textarea id="${escapeHtml(question.id)}" maxlength="${escapeHtml(question.maxLength)}" placeholder="${escapeHtml(question.placeholder)}"></textarea>${micButton}</div></div>`;
   }
 
-  const micButton = question.supportsSpeech
-    ? `<button type="button" class="mic-btn" data-target="${escapeHtml(question.id)}" aria-label="Start voice input for ${escapeHtml(question.label)}" aria-pressed="false"><span aria-hidden="true">🎤</span> <span class="mic-btn-text">Voice</span></button>`
-    : "";
+  if (question.type === "number") {
+    const minAttr = question.min !== undefined ? ` min="${escapeHtml(question.min)}"` : "";
+    const maxAttr = question.max !== undefined ? ` max="${escapeHtml(question.max)}"` : "";
+    const stepAttr = question.step !== undefined ? ` step="${escapeHtml(question.step)}"` : "";
+    const inputModeAttr = question.inputMode ? ` inputmode="${escapeHtml(question.inputMode)}"` : "";
+    return `<div class="field"><label for="${escapeHtml(question.id)}">${escapeHtml(question.label)}</label><input type="number" id="${escapeHtml(question.id)}" placeholder="${escapeHtml(question.placeholder)}"${minAttr}${maxAttr}${stepAttr}${inputModeAttr} /></div>`;
+  }
 
-  return `<div class="field"><label for="${escapeHtml(question.id)}">${escapeHtml(question.label)}</label><div class="textarea-with-mic"><textarea id="${escapeHtml(question.id)}" maxlength="${escapeHtml(question.maxLength)}" placeholder="${escapeHtml(question.placeholder)}"></textarea>${micButton}</div></div>`;
+  console.error(`Unsupported field type "${question.type}" for question "${question.id}".`);
+  return "";
 }
 
 export function renderAuditQuestionFields(questionFieldsEl) {
@@ -59,7 +67,9 @@ export function entryToCardHtml(entry) {
     { key: "socialConnection", label: "Social" },
     { key: "focusWorkHours", label: "Focus", format: formatHoursMetric },
     { key: "intentionality", label: "Intentionality" },
-    { key: "stressLevel", label: "Stress" }
+    { key: "stressLevel", label: "Stress" },
+    { key: "calorieIntake", label: "Calories" },
+    { key: "weightKg", label: "Weight", format: value => `${Number(value).toFixed(1).replace(/\.0$/, "")} kg` }
   ];
 
   const metricPills = metricDefinitions
