@@ -178,31 +178,19 @@
 
     <section id="reviewPanel" class="tab-panel" aria-label="Review" hidden>
       <section class="card">
+        <div class="section-header"><div><h2>Audit calendar</h2><p class="muted">See which days in each month have an audit logged, are still missing, or have not happened yet.</p></div></div>
+        <div id="reviewCalendar" class="review-calendar"><div class="empty-state">No entries yet. Once you log audits, they will show up here.</div></div>
+      </section>
+
+      <section class="card">
         <div class="section-header"><div><h2>Reflection prompts</h2><p class="muted">Pull up a nearby entry for perspective.</p></div></div>
         <div class="reflection-buttons"><button type="button" data-reflection="week">This time last week</button><button type="button" data-reflection="month">This time last month</button><button type="button" data-reflection="year">This time last year</button></div>
         <div id="reviewResult" class="review-result"><div class="empty-state">Use the buttons above to pull up a past entry.</div></div>
       </section>
 
       <section class="card">
-        <div class="section-header"><div><h2>Saved entries</h2><p class="muted">Review your recent audits in reverse chronological order.</p></div></div>
+        <div class="section-header"><div><h2>Saved entries</h2><p class="muted">Review all of your audits in reverse chronological order.</p></div></div>
         <div id="entriesList" class="entry-list"><div class="empty-state">No entries yet. Your future self is currently unbriefed.</div></div>
-      </section>
-
-      <section class="card">
-        <div class="section-header"><div><h2>Audit calendar</h2><p class="muted">See which days in the selected range have an audit logged and which do not.</p></div></div>
-        <div class="filter-row">
-          <label for="recentFilter">Date range</label>
-          <select id="recentFilter">
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="custom">Custom range</option>
-          </select>
-        </div>
-        <div id="customDateFilters" class="custom-date-filters hidden" aria-hidden="true">
-          <div class="field"><label for="customStartDate">Start date</label><input type="date" id="customStartDate" /></div>
-          <div class="field"><label for="customEndDate">End date</label><input type="date" id="customEndDate" /></div>
-        </div>
-        <div id="reviewCalendar" class="review-calendar"><div class="empty-state">No entries in this range yet, so the calendar has nothing to mark.</div></div>
       </section>
     </section>
 

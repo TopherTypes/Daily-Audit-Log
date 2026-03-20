@@ -1,5 +1,5 @@
 import { QUESTION_SCHEMA, validateQuestionSchema } from "../config/questions.js";
-import { formatDisplayDate, formatDisplayTimestamp, formatYMD, parseYMDToDate } from "../utils/date.js";
+import { formatDisplayDate, formatDisplayTimestamp, formatYMD } from "../utils/date.js";
 
 export function escapeHtml(value) {
   return String(value ?? "")
@@ -110,106 +110,77 @@ function renderEntriesList(entriesListEl, entries) {
   entriesListEl.innerHTML = entries.map(entryToCardHtml).join("");
 }
 
-function getCalendarRange(filters, entries) {
-  const filterValue = filters?.recent || "7";
+function getVisibleCalendarMonth(filters, entries) {
   const today = new Date();
   today.setHours(12, 0, 0, 0);
 
-  let rangeStart;
-  let rangeEnd;
+  const offset = Number(filters?.calendarMonthOffset ?? 0);
+  const visibleMonth = new Date(today.getFullYear(), today.getMonth() + offset, 1, 12, 0, 0, 0);
 
-  if (filterValue === "custom" && filters?.customStartDate && filters?.customEndDate) {
-    rangeStart = parseYMDToDate(filters.customStartDate);
-    rangeEnd = parseYMDToDate(filters.customEndDate);
-  } else if (filterValue !== "custom") {
-    const days = Number(filterValue);
-    rangeEnd = new Date(today);
-    rangeStart = new Date(today);
-    rangeStart.setDate(rangeStart.getDate() - (days - 1));
-  } else if (entries.length > 0) {
-    const sortedDates = entries
-      .map(entry => entry.entryDate)
-      .filter(Boolean)
-      .sort();
-    rangeStart = parseYMDToDate(sortedDates[0]);
-    rangeEnd = parseYMDToDate(sortedDates[sortedDates.length - 1]);
-  } else {
-    return null;
+  if (entries.length === 0) {
+    return { visibleMonth, hasPreviousMonthWithEntries: false, hasNextMonthWithEntries: false };
   }
 
-  if (!rangeStart || !rangeEnd || rangeStart.getTime() > rangeEnd.getTime()) return null;
+  const sortedDates = entries
+    .map(entry => entry.entryDate)
+    .filter(Boolean)
+    .sort();
 
-  // Expand the selected review range to full calendar weeks so logged and missing
-  // days are easy to scan without partial rows at the month boundaries.
-  const monthStart = new Date(rangeStart);
-  monthStart.setDate(1);
-  const monthEnd = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth() + 1, 0, 12, 0, 0, 0);
+  const firstEntryMonth = new Date(`${sortedDates[0]}T12:00:00`);
+  const lastEntryMonth = new Date(`${sortedDates[sortedDates.length - 1]}T12:00:00`);
+  const previousMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1, 12, 0, 0, 0);
+  const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1, 12, 0, 0, 0);
 
-  const calendarStart = new Date(monthStart);
-  calendarStart.setDate(monthStart.getDate() - monthStart.getDay());
-
-  const calendarEnd = new Date(monthEnd);
-  calendarEnd.setDate(monthEnd.getDate() + (6 - monthEnd.getDay()));
-
-  return { calendarStart, calendarEnd, rangeStart, rangeEnd };
+  return {
+    visibleMonth,
+    hasPreviousMonthWithEntries: previousMonth.getTime() >= new Date(firstEntryMonth.getFullYear(), firstEntryMonth.getMonth(), 1, 12, 0, 0, 0).getTime(),
+    hasNextMonthWithEntries: nextMonth.getTime() <= new Date(lastEntryMonth.getFullYear(), lastEntryMonth.getMonth(), 1, 12, 0, 0, 0).getTime()
+  };
 }
 
 function renderReviewCalendar(reviewCalendarEl, entries, filters) {
   if (!reviewCalendarEl) return;
 
   const entryDateSet = new Set(entries.map(entry => entry.entryDate));
-  const range = getCalendarRange(filters, entries);
-  if (!range) {
-    reviewCalendarEl.innerHTML = '<div class="empty-state">Choose a valid date range to see your audit calendar.</div>';
-    return;
-  }
-
+  const { visibleMonth, hasPreviousMonthWithEntries, hasNextMonthWithEntries } = getVisibleCalendarMonth(filters, entries);
   const monthFormatter = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" });
   const dayNumberFormatter = new Intl.DateTimeFormat(undefined, { day: "numeric" });
   const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const todayKey = formatYMD(new Date());
-  const months = [];
-  let monthCursor = new Date(range.rangeStart);
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const todayKey = formatYMD(today);
 
-  while (monthCursor.getTime() <= range.rangeEnd.getTime()) {
-    months.push({
-      year: monthCursor.getFullYear(),
-      month: monthCursor.getMonth(),
-      label: monthFormatter.format(monthCursor)
-    });
-    monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1, 12, 0, 0, 0);
+  const monthStart = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1, 12, 0, 0, 0);
+  const monthEnd = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0, 12, 0, 0, 0);
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(monthStart.getDate() - monthStart.getDay());
+  const gridEnd = new Date(monthEnd);
+  gridEnd.setDate(monthEnd.getDate() + (6 - monthEnd.getDay()));
+
+  const cells = [];
+
+  for (let cursor = new Date(gridStart); cursor.getTime() <= gridEnd.getTime(); cursor.setDate(cursor.getDate() + 1)) {
+    const dateKey = formatYMD(cursor);
+    const inMonth = cursor.getMonth() === visibleMonth.getMonth();
+    const hasEntry = entryDateSet.has(dateKey);
+    const isToday = dateKey === todayKey;
+    const isFuture = cursor.getTime() > today.getTime();
+    const classes = ["review-calendar-day"];
+
+    if (!inMonth) classes.push("outside-month");
+    if (isFuture) classes.push("future-day");
+    else if (hasEntry) classes.push("has-entry");
+    else classes.push("missing-entry");
+    if (isToday) classes.push("is-today");
+
+    const stateLabel = isFuture ? "Future date" : hasEntry ? "Audit logged" : "No audit logged";
+    const statusText = isFuture ? "Upcoming" : hasEntry ? "Logged" : "Missing";
+    const todayLabel = isToday ? ". Today." : "";
+    cells.push(`<div class="${classes.join(" ")}" aria-label="${escapeHtml(formatDisplayDate(dateKey))}. ${stateLabel}${todayLabel}"><span class="review-calendar-day-number">${escapeHtml(dayNumberFormatter.format(cursor))}</span><span class="review-calendar-day-status">${statusText}</span></div>`);
   }
 
-  const monthSections = months.map(({ year, month, label }) => {
-    const monthStart = new Date(year, month, 1, 12, 0, 0, 0);
-    const monthEnd = new Date(year, month + 1, 0, 12, 0, 0, 0);
-    const gridStart = new Date(monthStart);
-    gridStart.setDate(monthStart.getDate() - monthStart.getDay());
-    const gridEnd = new Date(monthEnd);
-    gridEnd.setDate(monthEnd.getDate() + (6 - monthEnd.getDay()));
-
-    const cells = [];
-
-    for (let cursor = new Date(gridStart); cursor.getTime() <= gridEnd.getTime(); cursor.setDate(cursor.getDate() + 1)) {
-      const dateKey = formatYMD(cursor);
-      const inMonth = cursor.getMonth() === month;
-      const hasEntry = entryDateSet.has(dateKey);
-      const isToday = dateKey === todayKey;
-      const classes = ["review-calendar-day"];
-      if (!inMonth) classes.push("outside-month");
-      if (hasEntry) classes.push("has-entry");
-      else classes.push("missing-entry");
-      if (isToday) classes.push("is-today");
-
-      const stateLabel = hasEntry ? "Audit logged" : "No audit logged";
-      const todayLabel = isToday ? ". Today." : "";
-      cells.push(`<div class="${classes.join(" ")}" aria-label="${escapeHtml(formatDisplayDate(dateKey))}. ${stateLabel}${todayLabel}"><span class="review-calendar-day-number">${escapeHtml(dayNumberFormatter.format(cursor))}</span><span class="review-calendar-day-status">${hasEntry ? "Logged" : "Missing"}</span></div>`);
-    }
-
-    return `<section class="review-calendar-month" aria-label="${escapeHtml(label)}"><div class="review-calendar-month-header"><h3>${escapeHtml(label)}</h3></div><div class="review-calendar-grid" role="grid"><div class="review-calendar-weekdays" aria-hidden="true">${weekdayLabels.map(day => `<span>${day}</span>`).join("")}</div>${cells.join("")}</div></section>`;
-  }).join("");
-
-  reviewCalendarEl.innerHTML = `<div class="review-calendar-summary"><span class="pill success-pill">${escapeHtml(String(entryDateSet.size))} days logged</span><span class="pill muted-pill">${escapeHtml(String(months.length))} month${months.length === 1 ? "" : "s"} shown</span></div><div class="review-calendar-legend" aria-label="Calendar legend"><span class="review-calendar-legend-item"><span class="review-calendar-swatch has-entry" aria-hidden="true"></span>Audit logged</span><span class="review-calendar-legend-item"><span class="review-calendar-swatch missing-entry" aria-hidden="true"></span>No audit logged</span><span class="review-calendar-legend-item"><span class="review-calendar-swatch today" aria-hidden="true"></span>Today</span></div><div class="review-calendar-months">${monthSections}</div>`;
+  const monthLabel = monthFormatter.format(visibleMonth);
+  reviewCalendarEl.innerHTML = `<div class="review-calendar-summary"><span class="pill success-pill">${escapeHtml(String(entryDateSet.size))} days logged</span><span class="pill muted-pill">Viewing ${escapeHtml(monthLabel)}</span></div><div class="review-calendar-legend" aria-label="Calendar legend"><span class="review-calendar-legend-item"><span class="review-calendar-swatch has-entry" aria-hidden="true"></span>Audit logged</span><span class="review-calendar-legend-item"><span class="review-calendar-swatch missing-entry" aria-hidden="true"></span>No audit logged</span><span class="review-calendar-legend-item"><span class="review-calendar-swatch future-day" aria-hidden="true"></span>Future date</span><span class="review-calendar-legend-item"><span class="review-calendar-swatch today" aria-hidden="true"></span>Today</span></div><div class="review-calendar-toolbar"><button type="button" class="review-calendar-nav" data-calendar-nav="previous" aria-label="Show previous month">← Previous</button><div class="review-calendar-current-month" aria-live="polite">${escapeHtml(monthLabel)}</div><button type="button" class="review-calendar-nav" data-calendar-nav="next" aria-label="Show next month">Next →</button></div><section class="review-calendar-month" aria-label="${escapeHtml(monthLabel)}"><div class="review-calendar-month-header"><h3>${escapeHtml(monthLabel)}</h3><p class="small muted">${entries.length === 0 ? "No saved entries yet." : `${hasPreviousMonthWithEntries ? "Earlier entries available." : ""}${hasPreviousMonthWithEntries && hasNextMonthWithEntries ? " " : ""}${hasNextMonthWithEntries ? "Later entry months available." : ""}`.trim() || "Browse around to compare months."}</p></div><div class="review-calendar-grid" role="grid"><div class="review-calendar-weekdays" aria-hidden="true">${weekdayLabels.map(day => `<span>${day}</span>`).join("")}</div>${cells.join("")}</div></section>`;
 }
 
 export function renderReflectionResult(reviewResultEl, kind, targetDateString, bestEntry) {
