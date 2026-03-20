@@ -105,7 +105,7 @@ export const actions = {
 
   setFilters(filters) {
     state.filters = { ...state.filters, ...filters };
-    notify(["entries"]);
+    notify(["entries", "review"]);
   },
 
   setFormMessage(text, mode = "") {

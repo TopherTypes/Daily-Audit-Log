@@ -24,7 +24,7 @@ The app now uses a small frontend module structure under `src/`:
 ### UX layout
 
 - `Journal` is now the default focused view with the daily entry form.
-- `Review` contains reflection shortcuts and filtered recent entries (7 days, 30 days, or custom range).
+- `Review` contains reflection shortcuts plus a filtered audit calendar (7 days, 30 days, or a custom range) that marks logged versus missing days.
 - `Settings & Sync` and `Data` are split into dedicated tabs and collapse into accordions on mobile.
 - A sticky mobile-first save bar keeps `Save entry` available while scrolling.
 - The daily audit form supports both reflective text prompts and numeric fields for calorie intake and weight.

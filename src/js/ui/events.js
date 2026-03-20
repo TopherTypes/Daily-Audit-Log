@@ -379,8 +379,8 @@ export function createUiHandlers(elements) {
         renderEntries(elements, filterEntries(state.entries, state.filters));
       }
 
-      if (changedAreas.includes("all") || changedAreas.includes("review")) {
-        renderReview(elements, state.entries);
+      if (changedAreas.includes("all") || changedAreas.includes("review") || changedAreas.includes("entries")) {
+        renderReview(elements, filterEntries(state.entries, state.filters), state.filters);
       }
 
       if (changedAreas.includes("all") || changedAreas.includes("syncStatus")) {
