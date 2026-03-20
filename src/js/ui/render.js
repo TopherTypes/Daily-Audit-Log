@@ -96,6 +96,13 @@ export function entryToCardHtml(entry) {
 }
 
 function renderEntriesList(entriesListEl, entries) {
+  if (!entriesListEl) {
+    // Guard against markup regressions so the rest of the app can keep rendering
+    // even if the entries mount point is accidentally removed.
+    console.error("Entries list container is missing from the DOM.");
+    return;
+  }
+
   if (entries.length === 0) {
     entriesListEl.innerHTML = '<div class="empty-state">No entries yet. Your future self is currently unbriefed.</div>';
     return;
