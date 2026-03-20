@@ -17,6 +17,7 @@ function collectElements() {
     stickySaveFeedback: document.getElementById("stickySaveFeedback"),
     dataMessage: document.getElementById("dataMessage"),
     entriesList: document.getElementById("entriesList"),
+    reviewCalendar: document.getElementById("reviewCalendar"),
     reviewResult: document.getElementById("reviewResult"),
     speechStatus: document.getElementById("speechStatus"),
     saveLiveRegion: document.getElementById("saveLiveRegion"),
